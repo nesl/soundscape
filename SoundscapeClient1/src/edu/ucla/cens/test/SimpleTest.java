@@ -20,7 +20,6 @@ import javax.microedition.midlet.*;
 import javax.microedition.media.*;
 import javax.microedition.media.control.*;
 import javax.microedition.rms.*;
-
 import edu.ucla.cens.test.SigSeg;
 
 public class SimpleTest extends MIDlet implements CommandListener, 
@@ -88,11 +87,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	// This is the constructor method.
 	// It creates a Canvas and a Form object.
 	public SimpleTest(){
-		
 		//////////////////////////////////////
 		// Open the record store.
-		try
-		{
+		try {
 			this.recordStore = RecordStore.openRecordStore("data", true);
 			this.recordStore.addRecordListener(this);
 		}
@@ -178,12 +175,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 	
 	// Callback for PlayerListener
-	public void playerUpdate(Player p, String event, Object eventData)
-	{
-		try
-		{
-			if (event.compareTo("PAUSE") == 0 ) 
-			{
+	public void playerUpdate(Player p, String event, Object eventData) {
+		try {
+			if (event.compareTo("PAUSE") == 0 ) {
 				// Update application stats.
 				++this.samplesTaken;
 				// Close down the recorder.
@@ -194,17 +188,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				
 				// Calculate the Noise level, save to this.power, and repaint.
 				double noiseLevel = this.getNoiseLevel();
-				if (this.power.size() >= 30)
-				{
-					this.power.removeElementAt(0);
+				if (this.power.size() >= 30) {
+					this.power.removeElementAt(0); 
 				} 
 				this.power.addElement(new Double(noiseLevel));
 				this.myCanvas.repaint();
 				
 				// If the noiseLevel is above the threshold (myCanvas.ave), 
 				// then save this.output to this.recordStore.
-				if (noiseLevel > this.myCanvas.ave)
-				{
+				if (noiseLevel > this.myCanvas.ave) {
 					long timeMS = java.util.Calendar.getInstance().getTime().getTime();
 					SigSeg sigseg = new SigSeg(timeMS, this.output);
 					byte[] sigsegBA = sigseg.toByteArray();

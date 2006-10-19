@@ -1,6 +1,6 @@
 /**
- * This interface represents something that can be instantiated to and from an XML snippet, 
- * representing a row in a SensorBase table.
+ * This interface represents something that can be instantiated to and from an 
+ * XML snippet, representing a row in a SensorBase table.
  */
 package edu.ucla.cens.test;
 

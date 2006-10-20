@@ -438,7 +438,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
-	 * 
+	 * If the stopPlayer flag is not set, then set another time to record again.
 	 */
 	private void playerUpdateMaybeRecordAgain() {
 		if (!this.stopPlayer) {
@@ -455,25 +455,29 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
+	 * Based on the noiseLevel, decide to save or drop the sample.
+	 * 
 	 * @param noiseLevel
 	 * @throws RecordStoreNotOpenException
 	 * @throws RecordStoreException
 	 * @throws RecordStoreFullException
+	 * @throws IOException
 	 */
 	private void playerUpdateFilter(double noiseLevel)
 			throws RecordStoreNotOpenException, RecordStoreException,
-			RecordStoreFullException {
+			RecordStoreFullException, IOException {
 		// If the noiseLevel is above the threshold (myCanvas.ave),
 		// then save this.output to this.recordStore.
 		if (noiseLevel > this.myCanvas.ave) {
 			long timeMS = java.util.Calendar.getInstance().getTime().getTime();
-			SigSeg sigseg = new SigSeg(timeMS, this.output);
-			byte[] sigsegBA = sigseg.toByteArray();
-			this.recordStore.addRecord(sigsegBA, 0, sigsegBA.length);
+			// This has the side-effect of writing to the recordStore.
+			new SigSeg(this.recordStore, timeMS, this.output);
 		}
 	}
 
 	/**
+	 * Given a noiseLevel, update the canvas-relate state and repaint.
+	 * 
 	 * @param noiseLevel
 	 */
 	private void playerUpdateCanvas(double noiseLevel) {
@@ -485,6 +489,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
+	 * Commit and close the player.
+	 * 
 	 * @throws IOException
 	 */
 	private void playerUpdateCommitAndClose() throws IOException {

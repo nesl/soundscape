@@ -9,7 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.sun.midp.io.Base64;
+import edu.ucla.cens.test.Base64Coder;
 
 public class SigSegRep {
 	/** The id of the record. -1 means it's not been set. */
@@ -99,7 +99,8 @@ public class SigSegRep {
 		// <field name="date">10235135</date>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</data>\n
-		String b64enc = Base64.encode(this.data, 0, this.data.length);
+		char[] b64charar = Base64Coder.encode(this.data);
+		String b64enc = new String(b64charar);
 		String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", urlenc));
 		// </row>\n

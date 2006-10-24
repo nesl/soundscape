@@ -46,7 +46,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private class SimpleTestHelper implements Runnable {
 		/**
-		 * Handler to our parent midlet.
+		 * Handle to our parent midlet.
 		 */
 		private SimpleTest midlet = null;
 
@@ -199,7 +199,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * The Form object that contains information about records and EOS.
 	 */
-	private Form myForm;
+	public Form myForm;
 
 	/**
 	 * Belongs to this.myForm. Gauge controlling the base window size.

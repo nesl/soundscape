@@ -143,6 +143,9 @@ public class SigSeg implements SensorBaseInterface {
 		this.recordStore.setRecord(this.rep.id, record, 0, record.length);
 	}
 
+	/**
+	 * Returns an XML string deliminated by "<row>" and "</row>".
+	 */
 	public String toXML() {
 		return this.rep.toXML();
 	}

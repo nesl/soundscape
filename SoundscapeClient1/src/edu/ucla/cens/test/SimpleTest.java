@@ -37,6 +37,8 @@ import javax.microedition.rms.RecordStoreFullException;
 import javax.microedition.rms.RecordStoreNotFoundException;
 import javax.microedition.rms.RecordStoreNotOpenException;
 
+
+
 /**
  * @author adparker
  * 
@@ -222,6 +224,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private StringItem myStringItem;
 
+	////////////////////////
+	// UI Form: Upload
+	public UploadScreen myUpload;
+	
+	
+	
 	// /////////////////////////
 	// UI Menu Commands
 	private Command backCommand = new Command("Back", Command.BACK, 1);
@@ -236,6 +244,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private Command playCommand = new Command("Play", Command.SCREEN, 1);
 
+	private Command uploadScreenCommand = new Command("Upload Screen", Command.SCREEN, 1);
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
 	 */
@@ -293,6 +302,14 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		// Install a Command Listener for the Canvas.
 		this.myCanvas.setCommandListener(this);
 
+		//////////////////////////////////////////
+		// UI Upload form
+		try {
+			this.myUpload = new UploadScreen(this);
+		} catch (RecordStoreNotOpenException e) {
+			this.alertError("Error starting upload screen: "+ e.getMessage());
+		}
+		this.myForm.addCommand(this.uploadScreenCommand);
 	}
 
 	/**
@@ -334,6 +351,14 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (c == this.playCommand) {
 			this.playCallback2();
 		}
+		if (c == this.uploadScreenCommand) {
+			this.uploadScreenCallback();
+		}
+	}
+
+	private void uploadScreenCallback() {
+		Display.getDisplay(this).setCurrent(this.myUpload.form);
+		
 	}
 
 	/**

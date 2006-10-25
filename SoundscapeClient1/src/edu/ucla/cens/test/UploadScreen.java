@@ -38,14 +38,15 @@ public class UploadScreen implements CommandListener, RecordListener {
 		public void run() {
 			try {
 				while (this.parent.state == this.parent.UPLOADING) {
+					this.parent.int_recordsRemaining =  this.parent.recordStore.getNumRecords();
 					if (this.parent.int_recordsRemaining > 0) {
 						this.parent.uploadRecord();
 					} else {
 						break;
 					}
 					// TODO debugging only
-					this.parent.state = this.parent.STOPPED;
-					break;
+					//this.parent.state = this.parent.STOPPED;
+					//break;
 				}
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"

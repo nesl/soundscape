@@ -380,8 +380,10 @@ public class UploadScreen implements CommandListener, RecordListener {
 	public void uploadRecord() {
 		try {
 			// create a connection, do the HTTP POST
-			//String url = "http://sensorbase.org/alpha/upload.php";
-			String url = "http://kestrel.lecs.cs.ucla.edu/";
+			String url = "http://sensorbase.org/alpha/upload.php";
+			this.postViaHttpConnection(url);
+			
+			url = "http://kestrel.lecs.cs.ucla.edu/";
 			this.postViaHttpConnection(url);
 			this.updateView();
 		} catch (Exception e) {

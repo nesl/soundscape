@@ -142,6 +142,7 @@ public class SigSegRep {
 	 * @return A string with the field row filled out.
 	 */
 	private String createField(String name, String val) {
+		// <field name="name">VAL</field>
 		return "<field name=\"" + name + "\">" + val + "</field>\n";
 	}
 

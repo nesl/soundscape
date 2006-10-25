@@ -271,7 +271,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			StringBuffer postBuf = new StringBuffer();
 			postBuf.append("email=adparker@gmail.com");
-			postBuf.append("&pwd=ecopda");
+			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
 			postBuf.append("&project_id=43");
 			postBuf.append("&tableName=test1");
@@ -317,6 +317,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append(sigSeg.toXML());
 			postBuf.append("</table>\n");
 
+			
+			
 			try {
 				os.write(postBuf.toString().getBytes());
 			} catch (IOException e) {
@@ -376,7 +378,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 	public void uploadRecord() {
 		try {
 			// create a connection, do the HTTP POST
-			String url = "http://sensorbase.org/alpha/upload.php";
+			//String url = "http://sensorbase.org/alpha/upload.php";
+			String url = "http://kestrel.lecs.cs.ucla.edu/";
 			this.postViaHttpConnection(url);
 			this.updateView();
 		} catch (Exception e) {

@@ -81,6 +81,7 @@ public class SigSegRep {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(record);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		this.timeMS = dataIn.readLong();
+		this.data = new byte[(int)record.length];
 		dataIn.read(this.data);
 		dataIn.close();
 		byteIn.close();

@@ -69,6 +69,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public StringItem status = null;
 
+	public StringItem debug = null;
+	
 	public SimpleTest midlet = null;
 
 	public RecordStore recordStore = null;
@@ -110,11 +112,12 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.recordsSent = new StringItem("Records Sent", String
 				.valueOf(this.int_recordsSent), Item.PLAIN);
 		this.status = new StringItem("Status", "Idle", Item.PLAIN);
-
+		this.debug = new StringItem("Debug", "Idle", Item.PLAIN);
 		// UI Form - Gauge
 		this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 
 		// UI Form - Assemble Elements
+		this.form.append(this.debug);
 		this.form.append(this.status);
 		this.form.append(this.gauge);
 		this.form.append(this.recordsRemaining);
@@ -127,6 +130,10 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.setCommandListener(this);
 	}
 
+	
+	public void log(String message) {
+		this.debug.setText(message);
+	}
 	/**
 	 * Creates an alert message on the phone.
 	 * 
@@ -140,6 +147,11 @@ public class UploadScreen implements CommandListener, RecordListener {
 		if (!(current instanceof Alert)) {
 			// This next call can't be done when current is an Alert
 			display.setCurrent(alert, current);
+		}
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -172,7 +184,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		if (this.state == this.STOPPED) {
 			this.status.setText("STOPPED");
 		} else if (this.state == this.UPLOADING) {
-			this.status.setText("UPLOADING)");
+			this.status.setText("UPLOADING");
 		}
 		// update gauge
 		int percentage = 0;
@@ -199,7 +211,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		int recID = 0;
 		RecordEnumeration recIter = null;
 		SigSeg sigSeg = null;
-
+		this.log("Test1");
 		try {
 			try {
 				c = (HttpConnection) Connector.open(url, Connector.READ_WRITE);
@@ -214,7 +226,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 								+ e.getMessage());
 				throw e;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				this.alertError("post:open IOException: " + e.getMessage());
 				throw e;
 			} catch (SecurityException e) {
@@ -222,6 +233,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 						+ e.getMessage());
 				throw e;
 			}
+			this.log("Test2");
 
 			try {
 				c.setRequestMethod(HttpConnection.POST);
@@ -231,6 +243,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 								+ e.getMessage());
 				throw e;
 			}
+			this.log("Test3");
 
 			try {
 				c.setRequestProperty("Content-type",
@@ -244,6 +257,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 								+ e.getMessage());
 				throw e;
 			}
+			this.log("Test4");
 
 			try {
 				os = c.openOutputStream();
@@ -253,6 +267,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 								+ e.getMessage());
 				throw e;
 			}
+			this.log("Test5");
 
 			StringBuffer postBuf = new StringBuffer();
 			postBuf.append("email=adparker@gmail.com");
@@ -270,6 +285,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 								+ e.getMessage());
 				throw e;
 			}
+			this.log("Test6");
 
 			try {
 				recID = recIter.nextRecordId();
@@ -278,23 +294,24 @@ public class UploadScreen implements CommandListener, RecordListener {
 						+ e.getMessage());
 				throw e;
 			}
+			this.log("Test7");
 
 			try {
 				sigSeg = new SigSeg(this.recordStore, recID);
 			} catch (RecordStoreNotOpenException e) {
-				alertError("post:SigSeg RecordStoreNotOpen " + e.getMessage());
+				alertError("post:SigSeg RecordStoreNotOpen ");// + e.getMessage());
 				throw e;
 			} catch (InvalidRecordIDException e) {
-				alertError("post:SigSeg InvalidIDException " + e.getMessage());
+				alertError("post:SigSeg InvalidIDException ");// + e.getMessage());
 				throw e;
 			} catch (RecordStoreException e) {
-				alertError("post:SigSeg RecordStoreException  "
-						+ e.getMessage());
+				alertError("post:SigSeg RecordStoreException");  //";//+ e.getMessage());;
 				throw e;
 			} catch (IOException e) {
 				alertError("post:SigSeg IOException " + e.getMessage());
 				throw e;
 			}
+			this.log("Test8");
 
 			postBuf.append("<table>\n");
 			postBuf.append(sigSeg.toXML());
@@ -306,6 +323,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 				alertError("post:os.write IOException " + e.getMessage());
 				throw e;
 			}
+			this.log("Test9");
 
 			try {
 				os.flush();
@@ -313,6 +331,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 				alertError("post:os.flush IOException " + e.getMessage());
 				throw e;
 			}
+			this.log("Test10");
 
 			try {
 				rc = c.getResponseCode();
@@ -321,8 +340,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 						+ e.getMessage());
 				throw e;
 			}
+			this.log("Test11");
+			this.alertError("HTTP response code: " + String.valueOf(rc));
 			if (rc != HttpConnection.HTTP_OK) {
-				this.alertError("HTTP response code: " + String.valueOf(rc));
 			} else {
 				++this.int_recordsSent;
 				this.updateView();
@@ -400,7 +420,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 			}
 			this.updateView();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			this.alertError("uploadCommand:" + e.getMessage());
 			e.printStackTrace();
 		}

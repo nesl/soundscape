@@ -38,21 +38,27 @@ public class UploadScreen implements CommandListener, RecordListener {
 		public void run() {
 			try {
 				while (this.parent.state == this.parent.UPLOADING) {
-					this.parent.int_recordsRemaining =  this.parent.recordStore.getNumRecords();
+					this.parent.int_recordsRemaining = this.parent.recordStore
+							.getNumRecords();
 					if (this.parent.int_recordsRemaining > 0) {
-						this.parent.uploadRecord();
+						int result = this.parent.uploadRecord();
+						if (result == 200) {
+							this.parent.popRecord();
+						} else {
+							break;
+						}
 					} else {
 						break;
 					}
-					// TODO debugging only
-					//this.parent.state = this.parent.STOPPED;
-					//break;
 					this.parent.updateView();
 				}
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"
 						+ e.getMessage());
 				e.printStackTrace();
+			} finally {
+				this.parent.state = this.parent.STOPPED;
+				this.parent.updateView();
 			}
 		}
 	}
@@ -72,7 +78,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	public StringItem status = null;
 
 	public StringItem debug = null;
-	
+
 	public SimpleTest midlet = null;
 
 	public RecordStore recordStore = null;
@@ -132,10 +138,45 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.setCommandListener(this);
 	}
 
-	
+	public void popRecord() throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
+		RecordEnumeration recIter = null;
+		int recID = -1;
+
+		try {
+			this.recordStore.enumerateRecords(null, null, false);
+		} catch (RecordStoreNotOpenException e) {
+			this.alertError("popRecord enumerateRecords RecordStoreNotOpen");
+			e.printStackTrace();
+			throw e;
+		}
+		try {
+			recID = recIter.nextRecordId();
+		} catch (InvalidRecordIDException e) {
+			this.alertError("post:nextRecordId: no more records."
+					+ e.getMessage());
+			throw e;
+		}
+		try {
+			this.recordStore.deleteRecord(recID);
+		} catch (RecordStoreNotOpenException e) {
+			this.alertError("popRecord:deleteRecord RecordStoreNotOpen");
+			e.printStackTrace();
+			throw e;
+		} catch (InvalidRecordIDException e) {
+			this.alertError("popRecord:deleteRecord InvalidRecordID");
+			e.printStackTrace();
+			throw e;
+		} catch (RecordStoreException e) {
+			this.alertError("popRecord:deleteRecord RecordStoreException");
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
 	public void log(String message) {
 		this.debug.setText(message);
 	}
+
 	/**
 	 * Creates an alert message on the phone.
 	 * 
@@ -302,13 +343,16 @@ public class UploadScreen implements CommandListener, RecordListener {
 			try {
 				sigSeg = new SigSeg(this.recordStore, recID);
 			} catch (RecordStoreNotOpenException e) {
-				alertError("post:SigSeg RecordStoreNotOpen ");// + e.getMessage());
+				alertError("post:SigSeg RecordStoreNotOpen ");// +
+																// e.getMessage());
 				throw e;
 			} catch (InvalidRecordIDException e) {
-				alertError("post:SigSeg InvalidIDException ");// + e.getMessage());
+				alertError("post:SigSeg InvalidIDException ");// +
+																// e.getMessage());
 				throw e;
 			} catch (RecordStoreException e) {
-				alertError("post:SigSeg RecordStoreException");  //";//+ e.getMessage());;
+				alertError("post:SigSeg RecordStoreException"); // ";//+
+																// e.getMessage());;
 				throw e;
 			} catch (IOException e) {
 				alertError("post:SigSeg IOException " + e.getMessage());
@@ -318,16 +362,15 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			postBuf.append(URLEncode.encode("<table>"));
 			postBuf.append(URLEncode.encode(sigSeg.toXML()));
-			//postBuf.append(sigSeg.toXML());
-			//sigSeg.toXML();
+			// postBuf.append(sigSeg.toXML());
+			// sigSeg.toXML();
 			postBuf.append(URLEncode.encode("</table>"));
 
 			// URL encode!
-			
-			
+
 			try {
-				//String urlenc = URLEncode.encode(postBuf.toString());
-				//String urlenc = postBuf.toString();
+				// String urlenc = URLEncode.encode(postBuf.toString());
+				// String urlenc = postBuf.toString();
 				os.write(postBuf.toString().getBytes());
 			} catch (IOException e) {
 				alertError("post:os.write IOException " + e.getMessage());
@@ -383,19 +426,20 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	// This gets called from the helper thread
-	public void uploadRecord() {
+	public int uploadRecord() {
+		int result = -1;
 		try {
 			// create a connection, do the HTTP POST
 			String url = "http://sensorbase.org/alpha/upload.php";
-			this.postViaHttpConnection(url);
-			
-			url = "http://kestrel.lecs.cs.ucla.edu/alpha/upload.php";
-			this.postViaHttpConnection(url);
-			this.updateView();
+			result = this.postViaHttpConnection(url);
+
+			// url = "http://kestrel.lecs.cs.ucla.edu/alpha/upload.php";
+			// this.postViaHttpConnection(url);
 		} catch (Exception e) {
 			this.alertError("UploadScreen::uploadRecord() Exception"
 					+ e.getMessage());
 		}
+		return result;
 	}
 
 	public void backCommandCB() {

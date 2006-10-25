@@ -144,7 +144,7 @@ public class SigSegRep {
 	private String createField(String name, String val) {
 		// <field name="name">VAL</field>
 		String result = "<field name=\"" + name + "\">" + val + "</field>\n";
-		return URLEncode.encode(result);
+		return result;
 	}
 
 }

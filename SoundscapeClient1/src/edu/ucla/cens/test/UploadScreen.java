@@ -316,6 +316,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			postBuf.append(URLEncode.encode("<table>"));
 			postBuf.append(URLEncode.encode(sigSeg.toXML()));
+			//postBuf.append(sigSeg.toXML());
 			//sigSeg.toXML();
 			postBuf.append(URLEncode.encode("</table>"));
 

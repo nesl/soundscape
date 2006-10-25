@@ -314,14 +314,16 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.log("Test8");
 
 			postBuf.append("<table>\n");
-			postBuf.append(sigSeg.toXML());
+			//postBuf.append(sigSeg.toXML());
+			sigSeg.toXML();
 			postBuf.append("</table>\n");
 
 			// URL encode!
 			
 			
 			try {
-				String urlenc = URLEncode.encode(postBuf.toString());
+				//String urlenc = URLEncode.encode(postBuf.toString());
+				String urlenc = postBuf.toString();
 				os.write(urlenc.getBytes());
 			} catch (IOException e) {
 				alertError("post:os.write IOException " + e.getMessage());
@@ -383,7 +385,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			String url = "http://sensorbase.org/alpha/upload.php";
 			this.postViaHttpConnection(url);
 			
-			url = "http://kestrel.lecs.cs.ucla.edu/";
+			url = "http://kestrel.lecs.cs.ucla.edu/alpha/upload.php";
 			this.postViaHttpConnection(url);
 			this.updateView();
 		} catch (Exception e) {

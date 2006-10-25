@@ -47,6 +47,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 					// TODO debugging only
 					//this.parent.state = this.parent.STOPPED;
 					//break;
+					this.parent.updateView();
 				}
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"

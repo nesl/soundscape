@@ -232,6 +232,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	
 	// /////////////////////////
 	// UI Menu Commands
+	private Command startUploadScreenCommand = new Command("Start Upload Screen", Command.SCREEN,1);
+	
 	private Command backCommand = new Command("Back", Command.BACK, 1);
 
 	private Command displayCommand = new Command("Meter", Command.SCREEN, 1);
@@ -249,67 +251,89 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * Default constructor. It creates a Canvas and a Form object.
 	 */
 	public SimpleTest() {
-		// ////////////////////////////////////
-		// Open the record store.
 		try {
-			this.recordStore = RecordStore.openRecordStore("data", true);
-			this.recordStore.addRecordListener(this);
-		} catch (RecordStoreNotFoundException e) {
-			this.alertError("Error: RecordStore not found:" + e.getMessage());
-		} catch (RecordStoreFullException e) {
-			this.alertError("Error: RecordStore full:" + e.getMessage());
-		} catch (RecordStoreException e) {
-			this.alertError("Error: RecordStore Exception:" + e.getMessage());
+			// ////////////////////////////////////
+			// Open the record store.
+			try {
+				this.recordStore = RecordStore.openRecordStore("data", true);
+				this.recordStore.addRecordListener(this);
+			} catch (RecordStoreNotFoundException e) {
+				this.alertError("Error: RecordStore not found:" + e.getMessage());
+			} catch (RecordStoreFullException e) {
+				this.alertError("Error: RecordStore full:" + e.getMessage());
+			} catch (RecordStoreException e) {
+				this.alertError("Error: RecordStore Exception:" + e.getMessage());
+			}
+
+			// /////////////////////////////////////////////////
+			// UI Record Form - Record Info
+			this.myForm = new Form("Record Info");
+			// StringItem: # of Saved Samples
+			this.myStringItem = new StringItem("Taken/Saved/Total Saved:", String
+					.valueOf(-1), Item.PLAIN);
+			this.updateStringItem(this.recordStore, -1);
+			this.myForm.append(this.myStringItem);
+			// ChoiceGroup: Actions
+			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
+					Choice.EXCLUSIVE);
+			this.myChoiceGroupActions.append("Stop", null);
+			this.myChoiceGroupActions.append("Record", null);
+			this.myChoiceGroupActions.append("Clear", null);
+			this.myForm.append(this.myChoiceGroupActions);
+			// Gauges - Total Window Size | Shared Window Size
+			this.myGaugeTotal = new Gauge("Total Window Size (ms):", true, 5000,
+					5000);
+			this.myForm.append(this.myGaugeTotal);
+			this.myGaugeShared = new Gauge("Shared Window Size (ms):", true, 5000,
+					4000);
+			this.myForm.append(this.myGaugeShared);
+			// Add commands.
+			this.myForm.addCommand(this.showCommand);
+			this.myForm.addCommand(this.displayCommand);
+			this.myForm.addCommand(this.exitCommand);
+			this.myForm.addCommand(this.uploadScreenCommand);
+			// Install Command and Item Listeners for Form.
+			this.myForm.setCommandListener(this);
+			this.myForm.setItemStateListener(this);
+
+			// /////////////////////////////////////////////////
+			// UI Canvas (for the sound meter)
+			this.myCanvas = new HelloCanvas(this);
+			// Add commands.
+			this.myCanvas.addCommand(this.backCommand);
+			this.myCanvas.addCommand(this.playCommand);
+			this.myCanvas.addCommand(this.recordCommand);
+			// Install a Command Listener for the Canvas.
+			this.myCanvas.setCommandListener(this);
+			this.myCanvas.addCommand(this.uploadScreenCommand);
+			
+			//this.myForm.addCommand(this.startUploadScreenCommand);
+			this.myForm.addCommand(this.uploadScreenCommand);
+			this.startUploadScreen();
+			
+		} catch (Exception e) {
+			this.alertError("Hi Exception " + e.getMessage());
+			e.printStackTrace();
 		}
+	}
 
-		// /////////////////////////////////////////////////
-		// UI Record Form - Record Info
-		this.myForm = new Form("Record Info");
-		// StringItem: # of Saved Samples
-		this.myStringItem = new StringItem("Taken/Saved/Total Saved:", String
-				.valueOf(-1), Item.PLAIN);
-		this.updateStringItem(this.recordStore, -1);
-		this.myForm.append(this.myStringItem);
-		// ChoiceGroup: Actions
-		this.myChoiceGroupActions = new ChoiceGroup("Actions:",
-				Choice.EXCLUSIVE);
-		this.myChoiceGroupActions.append("Stop", null);
-		this.myChoiceGroupActions.append("Record", null);
-		this.myChoiceGroupActions.append("Clear", null);
-		this.myForm.append(this.myChoiceGroupActions);
-		// Gauges - Total Window Size | Shared Window Size
-		this.myGaugeTotal = new Gauge("Total Window Size (ms):", true, 5000,
-				5000);
-		this.myForm.append(this.myGaugeTotal);
-		this.myGaugeShared = new Gauge("Shared Window Size (ms):", true, 5000,
-				4000);
-		this.myForm.append(this.myGaugeShared);
-		// Add commands.
-		this.myForm.addCommand(this.showCommand);
-		this.myForm.addCommand(this.displayCommand);
-		this.myForm.addCommand(this.exitCommand);
-		// Install Command and Item Listeners for Form.
-		this.myForm.setCommandListener(this);
-		this.myForm.setItemStateListener(this);
-
-		// /////////////////////////////////////////////////
-		// UI Canvas (for the sound meter)
-		this.myCanvas = new HelloCanvas(this);
-		// Add commands.
-		this.myCanvas.addCommand(this.backCommand);
-		this.myCanvas.addCommand(this.playCommand);
-		this.myCanvas.addCommand(this.recordCommand);
-		// Install a Command Listener for the Canvas.
-		this.myCanvas.setCommandListener(this);
-
+	/**
+	 * 
+	 */
+	private void startUploadScreen() {
 		//////////////////////////////////////////
 		// UI Upload form
 		try {
 			this.myUpload = new UploadScreen(this);
 		} catch (RecordStoreNotOpenException e) {
 			this.alertError("Error starting upload screen: "+ e.getMessage());
+		} catch (NullPointerException e) {
+			this.alertError("Hi Null Exception: " + e.getMessage());
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			this.alertError("Hi IllegalArg: " + e.getMessage());
+			e.printStackTrace();
 		}
-		this.myForm.addCommand(this.uploadScreenCommand);
 	}
 
 	/**
@@ -353,6 +377,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 		if (c == this.uploadScreenCommand) {
 			this.uploadScreenCallback();
+		}
+		if (c == this.startUploadScreenCommand) {
+			this.startUploadScreen();
 		}
 	}
 

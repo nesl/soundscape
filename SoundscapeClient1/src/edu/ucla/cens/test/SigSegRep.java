@@ -89,23 +89,23 @@ public class SigSegRep {
 
 	/**
 	 * Returns an XML representation of this, appropriate for upload to
-	 * SensorBase.
+	 * SensorBase. Note that it needs to be URL encoded as part of upload.
 	 * 
 	 * @return String - XML representation of SigSegRep.
 	 */
 	public String toXML() {
 		StringBuffer result = new StringBuffer();
-		result.append("<row>\n");
+		result.append("<row>");
 		result.append(this.createField("id", String.valueOf(this.id)));
 		// <field name="date">10235135</date>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</data>\n
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = new String(b64charar);
-		String urlenc = URLEncode.encode(b64enc);
-		result.append(this.createField("data", urlenc));
+		//String urlenc = URLEncode.encode(b64enc);
+		result.append(this.createField("data", b64enc));
 		// </row>\n
-		result.append("</row>\n");
+		result.append("</row>");
 		return result.toString();
 	}
 
@@ -143,7 +143,8 @@ public class SigSegRep {
 	 */
 	private String createField(String name, String val) {
 		// <field name="name">VAL</field>
-		return "<field name=\"" + name + "\">" + val + "</field>\n";
+		String result = "<field name=\"" + name + "\">" + val + "</field>\n";
+		return URLEncode.encode(result);
 	}
 
 }

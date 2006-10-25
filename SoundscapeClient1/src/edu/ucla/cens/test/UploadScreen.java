@@ -270,7 +270,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.log("Test5");
 
 			StringBuffer postBuf = new StringBuffer();
-			postBuf.append("email=adparker@gmail.com");
+			postBuf.append("email=adparker%40gmail.com");
 			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
 			postBuf.append("&project_id=43");
@@ -313,18 +313,18 @@ public class UploadScreen implements CommandListener, RecordListener {
 			}
 			this.log("Test8");
 
-			postBuf.append("<table>\n");
-			//postBuf.append(sigSeg.toXML());
-			sigSeg.toXML();
-			postBuf.append("</table>\n");
+			postBuf.append(URLEncode.encode("<table>"));
+			postBuf.append(URLEncode.encode(sigSeg.toXML()));
+			//sigSeg.toXML();
+			postBuf.append(URLEncode.encode("</table>"));
 
 			// URL encode!
 			
 			
 			try {
 				//String urlenc = URLEncode.encode(postBuf.toString());
-				String urlenc = postBuf.toString();
-				os.write(urlenc.getBytes());
+				//String urlenc = postBuf.toString();
+				os.write(postBuf.toString().getBytes());
 			} catch (IOException e) {
 				alertError("post:os.write IOException " + e.getMessage());
 				throw e;

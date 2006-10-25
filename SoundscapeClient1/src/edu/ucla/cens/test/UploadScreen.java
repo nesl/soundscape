@@ -317,10 +317,12 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append(sigSeg.toXML());
 			postBuf.append("</table>\n");
 
+			// URL encode!
 			
 			
 			try {
-				os.write(postBuf.toString().getBytes());
+				String urlenc = URLEncode.encode(postBuf.toString());
+				os.write(urlenc.getBytes());
 			} catch (IOException e) {
 				alertError("post:os.write IOException " + e.getMessage());
 				throw e;

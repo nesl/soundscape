@@ -17,29 +17,23 @@ public class URLEncode {
 		{
 			StringBuffer tmp = new StringBuffer();
 			int i = 0;
-			try 
-			{
-				while (true)
-				{
-					int b = (int)s.charAt(i++);
-					if ((b >= 0x30 && b <= 0x39) 
-						|| (b >= 0x41 && b <= 0x5A)
-						|| (b >= 0x61 && b <= 0x7A))
-					{
-						tmp.append((char)b);
-					}
-					else
-					{
+
+			try {
+				while (true) {
+					int b = (int) s.charAt(i++);
+					if ((b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x5A)
+							|| (b >= 0x61 && b <= 0x7A)) {
+						tmp.append((char) b);
+					} else {
 						tmp.append("%");
-						if (b <= 0xf)
-						{
+						if (b <= 0xf) {
 							tmp.append("0");
 						}
 						tmp.append(Integer.toHexString(b));
 					}
 				}
-			}
-			catch (Exception e) {}
+			} catch (RuntimeException e) {}
+
 			return tmp.toString();
 		}
 		return null;

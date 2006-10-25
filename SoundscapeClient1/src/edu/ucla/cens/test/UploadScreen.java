@@ -251,6 +251,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 				c.setRequestProperty("User-Agent",
 						"Profile/MIDP-2.0 Configuration/CLDC-1.0");
 				c.setRequestProperty("Accept", "text/plain");
+				c.setRequestProperty("Accept-Encoding", "identity");
 			} catch (IOException e) {
 				this
 						.alertError("post:setReqProperty IOException: connection is in connected state."

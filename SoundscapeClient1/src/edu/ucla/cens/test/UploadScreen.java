@@ -143,7 +143,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		int recID = -1;
 
 		try {
-			this.recordStore.enumerateRecords(null, null, false);
+			recIter = this.recordStore.enumerateRecords(null, null, false);
 		} catch (RecordStoreNotOpenException e) {
 			this.alertError("popRecord enumerateRecords RecordStoreNotOpen");
 			e.printStackTrace();

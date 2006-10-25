@@ -101,7 +101,7 @@ public class SigSegRep {
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</data>\n
 		char[] b64charar = Base64Coder.encode(this.data);
-		String b64enc = new String(b64charar);
+		String b64enc = String.valueOf(b64charar);
 		//String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", b64enc));
 		// </row>\n

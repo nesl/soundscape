@@ -28,39 +28,115 @@ import javax.microedition.rms.RecordStoreNotOpenException;
 
 public class UploadScreen implements CommandListener, RecordListener {
 
-	private class UploadScreenHelper implements Runnable {
+	private class UploadScreenHelper implements Runnable, RecordListener {
 		private UploadScreen parent = null;
 
+		private boolean running = true;
+
+		/**
+		 * Constructor for UploadScreen
+		 * 
+		 * @param parent
+		 *            pointer to parent object.
+		 */
 		UploadScreenHelper(UploadScreen parent) {
 			this.parent = parent;
+			this.parent.recordStore.addRecordListener(this);
 		}
 
 		public void run() {
 			try {
-				while (this.parent.state == this.parent.UPLOADING) {
-					this.parent.int_recordsRemaining = this.parent.recordStore
-							.getNumRecords();
-					if (this.parent.int_recordsRemaining > 0) {
-						int result = this.parent.uploadRecord();
-						if (result == 200) {
-							this.parent.popRecord();
-						} else {
-							break;
-						}
-					} else {
+				while (this.running
+						&& (this.parent.state != UploadScreen.STOPPED)) {
+					// dispatch based on parent's state.
+					switch (this.parent.state) {
+					case UploadScreen.UPLOADING:
+						doUploading();
+						break;
+					case UploadScreen.WAITING:
+						doWaiting();
+						break;
+					case UploadScreen.SLEEPING:
+						doSleeping();
+						break;
+					default:
+						this.updateParentState(UploadScreen.STOPPED);
 						break;
 					}
-					this.parent.updateView();
 				}
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"
 						+ e.getMessage());
 				e.printStackTrace();
 			} finally {
-				this.parent.state = this.parent.STOPPED;
+				this.updateParentState(UploadScreen.STOPPED);
 				this.parent.updateView();
 			}
 		}
+
+		/**
+		 * @throws RecordStoreNotOpenException
+		 * @throws InvalidRecordIDException
+		 * @throws RecordStoreException
+		 */
+		private void doUploading() throws RecordStoreNotOpenException,
+				InvalidRecordIDException, RecordStoreException {
+			this.parent.int_recordsRemaining = this.parent.recordStore
+					.getNumRecords();
+			if (this.parent.int_recordsRemaining > 0) {
+				int result = this.parent.uploadRecord();
+				if (result != 200) { // result is not 200
+					this.updateParentState(UploadScreen.SLEEPING);
+					this.parent.midlet.alertError("Got a non-200 response!");
+				}
+			} else { // No more records
+				this.updateParentState(UploadScreen.WAITING);
+			} // else
+			this.parent.updateView();
+		} // while
+
+		private void doSleeping() {
+			mySleep();
+			this.updateParentState(UploadScreen.UPLOADING);
+		}
+
+		private void updateParentState(int newState) {
+			if (this.parent.state != UploadScreen.STOPPED) {
+				this.parent.state = newState;
+			}
+		}
+
+		/**
+		 * Sometimes I want to sleep. :P
+		 */
+		private void mySleep() {
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException ie) {
+				this.parent.midlet
+						.alertError("InterruptedException while sleeping:"
+								+ ie.getMessage());
+			}
+		}
+
+		private void doWaiting() {
+			mySleep();
+		}
+
+		public void recordAdded(RecordStore recordStore, int recordId) {
+			if (this.parent.state == UploadScreen.WAITING) {
+				this.updateParentState(UploadScreen.UPLOADING);
+			}
+		}
+
+		public void recordChanged(RecordStore recordStore, int recordId) {
+			return;
+		}
+
+		public void recordDeleted(RecordStore recordStore, int recordId) {
+			return;
+		}
+
 	}
 
 	public Form form = null;
@@ -71,9 +147,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public Gauge gauge = null;
 
-	public StringItem recordsRemaining = null;
+	public StringItem strItem_recordsRemaining = null;
 
-	public StringItem recordsSent = null;
+	public StringItem strItem_recordsSent = null;
 
 	public StringItem status = null;
 
@@ -91,11 +167,28 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public Thread thread = null;
 
-	final int STOPPED = 0;
+	/**
+	 * We're idle.
+	 */
+	static final int STOPPED = 0;
 
-	final int UPLOADING = 1;
+	/**
+	 * We're in the process of uploading.
+	 */
+	static final int UPLOADING = 1;
 
-	int state = 0;
+	/**
+	 * We're waiting for more records to be entered.
+	 */
+	static final int WAITING = 2;
+
+	/**
+	 * We're waiting for a possibly transit error to go away, like a non-200
+	 * HTTP response.
+	 */
+	static final int SLEEPING = 3;
+
+	int state = UploadScreen.STOPPED;
 
 	public UploadScreen(SimpleTest midlet) throws RecordStoreNotOpenException {
 
@@ -115,9 +208,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 		// UI Form - string items
 		this.form = new Form("Upload Info");
 		this.int_recordsRemaining = this.recordStore.getNumRecords();
-		this.recordsRemaining = new StringItem("Records Remaining", String
+		this.strItem_recordsRemaining = new StringItem("Records Remaining", String
 				.valueOf(this.int_recordsRemaining), Item.PLAIN);
-		this.recordsSent = new StringItem("Records Sent", String
+		this.strItem_recordsSent = new StringItem("Records Sent", String
 				.valueOf(this.int_recordsSent), Item.PLAIN);
 		this.status = new StringItem("Status", "Idle", Item.PLAIN);
 		this.debug = new StringItem("Debug", "Idle", Item.PLAIN);
@@ -128,8 +221,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.append(this.debug);
 		this.form.append(this.status);
 		this.form.append(this.gauge);
-		this.form.append(this.recordsRemaining);
-		this.form.append(this.recordsSent);
+		this.form.append(this.strItem_recordsRemaining);
+		this.form.append(this.strItem_recordsSent);
 		this.form.addCommand(this.backCommand);
 		this.form.addCommand(this.uploadCommand);
 		this.form.addCommand(this.stopCommand);
@@ -138,24 +231,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.setCommandListener(this);
 	}
 
-	public void popRecord() throws RecordStoreNotOpenException, InvalidRecordIDException, RecordStoreException {
-		RecordEnumeration recIter = null;
-		int recID = -1;
-
-		try {
-			recIter = this.recordStore.enumerateRecords(null, null, false);
-		} catch (RecordStoreNotOpenException e) {
-			this.alertError("popRecord enumerateRecords RecordStoreNotOpen");
-			e.printStackTrace();
-			throw e;
-		}
-		try {
-			recID = recIter.nextRecordId();
-		} catch (InvalidRecordIDException e) {
-			this.alertError("post:nextRecordId: no more records."
-					+ e.getMessage());
-			throw e;
-		}
+	public void popRecord(int recID) throws RecordStoreNotOpenException,
+			InvalidRecordIDException, RecordStoreException {
 		try {
 			this.recordStore.deleteRecord(recID);
 		} catch (RecordStoreNotOpenException e) {
@@ -224,24 +301,41 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public void updateView() {
 		// update status text box.
-		if (this.state == this.STOPPED) {
+		switch (this.state) {
+		case UploadScreen.STOPPED:
 			this.status.setText("STOPPED");
-		} else if (this.state == this.UPLOADING) {
+			break;
+		case UploadScreen.SLEEPING:
+			this.status.setText("SLEEPING");
+			break;
+		case UploadScreen.WAITING:
+			this.status.setText("WAITING");
+			break;
+		case UploadScreen.UPLOADING:
 			this.status.setText("UPLOADING");
+			break;
+		default:
+			this.status.setText("UNKNOWN");
+			break;
 		}
+
 		// update gauge
-		int percentage = 0;
-		if (this.int_recordsRemaining > 0) {
-			percentage = (int) java.lang.Math
-					.floor((this.int_recordsSent * 1.0)
-							/ (1.0 + this.int_recordsRemaining + this.int_recordsSent));
-		}
-		this.gauge.setValue(percentage);
+//		int percentage = 0;
+//		int recordsTotal = int_recordsRemaining + this.int_recordsSent;
+//		if (recordsTotal > 0) {
+//			float ratio = this.int_recordsSent
+//			percentage = (int) java.lang.Math
+//					.floor((this.int_recordsSent * 1.0)
+//							/ (1.0 * (this.int_recordsRemaining + this.int_recordsSent)));
+//		}
+//		this.gauge.setValue(percentage);
+
 		// update records remaining
-		this.recordsRemaining
+		this.strItem_recordsRemaining
 				.setText(String.valueOf(this.int_recordsRemaining));
+
 		// update records sent
-		this.recordsSent.setText(String.valueOf(this.int_recordsSent));
+		this.strItem_recordsSent.setText(String.valueOf(this.int_recordsSent));
 	}
 
 	public int postViaHttpConnection(String url) { // throws IOException,
@@ -312,7 +406,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 				throw e;
 			}
 			this.log("Test5");
-			
+
 			StringBuffer postBuf = new StringBuffer();
 			postBuf.append("email=adparker%40gmail.com");
 			postBuf.append("&pw=ecopda");
@@ -344,15 +438,15 @@ public class UploadScreen implements CommandListener, RecordListener {
 				sigSeg = new SigSeg(this.recordStore, recID);
 			} catch (RecordStoreNotOpenException e) {
 				alertError("post:SigSeg RecordStoreNotOpen ");// +
-																// e.getMessage());
+				// e.getMessage());
 				throw e;
 			} catch (InvalidRecordIDException e) {
 				alertError("post:SigSeg InvalidIDException ");// +
-																// e.getMessage());
+				// e.getMessage());
 				throw e;
 			} catch (RecordStoreException e) {
 				alertError("post:SigSeg RecordStoreException"); // ";//+
-																// e.getMessage());;
+				// e.getMessage());;
 				throw e;
 			} catch (IOException e) {
 				alertError("post:SigSeg IOException " + e.getMessage());
@@ -394,9 +488,10 @@ public class UploadScreen implements CommandListener, RecordListener {
 				throw e;
 			}
 			this.log("Test11");
-			this.alertError("HTTP response code: " + String.valueOf(rc));
 			if (rc != HttpConnection.HTTP_OK) {
+				this.alertError("HTTP response code: " + String.valueOf(rc));
 			} else {
+				this.popRecord(recID);
 				++this.int_recordsSent;
 				this.updateView();
 			}
@@ -449,7 +544,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	private void stopCommandCB() {
-		this.state = this.STOPPED;
+		this.state = UploadScreen.STOPPED;
 		this.updateView();
 		this.midlet.alertError("Stop.");
 	}
@@ -470,8 +565,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 	 */
 	private void uploadCommandCB() {
 		try {
-			if (this.state != this.UPLOADING) {
-				this.state = this.UPLOADING;
+			if (this.state == UploadScreen.STOPPED) {
+				this.state = UploadScreen.UPLOADING;
 				this.thread = new Thread(new UploadScreenHelper(this));
 				this.thread.start();
 			}

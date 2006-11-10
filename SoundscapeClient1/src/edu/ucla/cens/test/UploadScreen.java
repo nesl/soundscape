@@ -312,7 +312,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 				throw e;
 			}
 			this.log("Test5");
-
+			
 			StringBuffer postBuf = new StringBuffer();
 			postBuf.append("email=adparker%40gmail.com");
 			postBuf.append("&pw=ecopda");

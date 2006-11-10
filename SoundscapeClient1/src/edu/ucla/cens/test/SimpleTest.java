@@ -74,7 +74,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		 */
 		SimpleTestHelper(SimpleTest midlet, int sleepMS, String msg) {
 			this.midlet = midlet;
-			this.sleepMS = sleepMS;
+			this.sleepMS = sleepMS * 100;
 			this.msg = msg;
 		}
 
@@ -281,11 +281,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Clear", null);
 			this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
-			this.myGaugeTotal = new Gauge("Total Window Size (ms):", true, 5000,
-					5000);
+			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true, 5000,
+					50);
 			this.myForm.append(this.myGaugeTotal);
-			this.myGaugeShared = new Gauge("Shared Window Size (ms):", true, 5000,
-					4000);
+			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):", true, 5000,
+					40);
 			this.myForm.append(this.myGaugeShared);
 			// Add commands.
 			this.myForm.addCommand(this.showCommand);

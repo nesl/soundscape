@@ -21,6 +21,7 @@ import javax.microedition.lcdui.Gauge;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.ItemStateListener;
 import javax.microedition.lcdui.StringItem;
+import javax.microedition.lcdui.TextField;
 import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
@@ -36,8 +37,6 @@ import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreFullException;
 import javax.microedition.rms.RecordStoreNotFoundException;
 import javax.microedition.rms.RecordStoreNotOpenException;
-
-
 
 /**
  * @author adparker
@@ -156,6 +155,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public RecordStore recordStore = null;
 
 	/**
+	 * This is the storage used to hold user-specific information.
+	 */
+	public RecordStore userInfo_rs = null;
+	
+	/**
 	 * A count of the number of acoust samples taken since application start-up.
 	 */
 	public int samplesTaken = 0;
@@ -224,7 +228,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private StringItem myStringItem;
 
-	////////////////////////
+	/** 
+	 * Belongs to this.myForm. A text box that shows the user name.
+	 */
+	private TextField userName_strItem;
+	
+	// //////////////////////
 	// UI Form: Upload
 	public UploadScreen myUpload;
 	
@@ -265,14 +274,28 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				this.alertError("Error: RecordStore Exception:" + e.getMessage());
 			}
 
+			/**
+			 * Open the user info record store
+			 */
+			this.userInfo_rs = RecordStore.openRecordStore("userInfo", true);
+			
+			
 			// /////////////////////////////////////////////////
 			// UI Record Form - Record Info
 			this.myForm = new Form("Record Info");
+			//
 			// StringItem: # of Saved Samples
 			this.myStringItem = new StringItem("Taken/Saved/Total Saved:", String
 					.valueOf(-1), Item.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.myStringItem);
+			//
+			// StringItem: user name
+			this.userName_strItem = new TextField("User name", "NA", 32, TextField.ANY);
+			this.setDefaultUserInfo(this.userInfo_rs);
+			this.updateUserInfo(this.userInfo_rs);
+			this.myForm.append(this.userName_strItem);
+			//
 			// ChoiceGroup: Actions
 			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
 					Choice.EXCLUSIVE);
@@ -307,7 +330,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myCanvas.setCommandListener(this);
 			this.myCanvas.addCommand(this.uploadScreenCommand);
 			
-			//this.myForm.addCommand(this.startUploadScreenCommand);
+			// this.myForm.addCommand(this.startUploadScreenCommand);
 			this.myForm.addCommand(this.uploadScreenCommand);
 			this.startUploadScreen();
 			
@@ -321,7 +344,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * 
 	 */
 	private void startUploadScreen() {
-		//////////////////////////////////////////
+		// ////////////////////////////////////////
 		// UI Upload form
 		try {
 			this.myUpload = new UploadScreen(this);
@@ -416,6 +439,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public void itemStateChanged(Item item) {
 		if (item.equals(this.myChoiceGroupActions)) {
 			this.choiceGroupChanged();
+		} else if (item.equals(this.userName_strItem)) {
+			this.updateUserInfo(this.userInfo_rs);
 		}
 	}
 
@@ -694,7 +719,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-	// 
+
+	
 	/**
 	 * This is a helper for RecordListener callbacks. It updates the state of
 	 * this.myStringItem.
@@ -714,6 +740,44 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		return;
 	}
 
+	private void setDefaultUserInfo(RecordStore userInfo) {
+		// If there aren't any records in userInfo, then add "Default".
+		String def = new String("Default");
+		byte[] ba = def.getBytes();
+		try {
+			if (userInfo.getNumRecords() == 0) {
+				userInfo.addRecord(ba, 0, ba.length);
+			}
+		} catch (RecordStoreNotOpenException e) {
+			e.printStackTrace();
+		} catch (RecordStoreFullException e) {
+			e.printStackTrace();
+		} catch (RecordStoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void updateUserInfo(RecordStore userInfo) {
+		RecordEnumeration rs_enum = null;
+		int recID = -1;
+		byte[] recData_ba = null;
+		String recData_str = null;
+		try {	
+			// from userInfo, get the first record.
+			rs_enum = this.recordStore.enumerateRecords(null, null, true);
+			recID = rs_enum.nextRecordId();
+			recData_ba = userInfo.getRecord(recID);
+			recData_str = new String(recData_ba);
+			this.userName_strItem.setString(recData_str);
+		} catch (RecordStoreNotOpenException e) {
+			e.printStackTrace();
+		} catch (InvalidRecordIDException e) {
+			e.printStackTrace();
+		} catch (RecordStoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

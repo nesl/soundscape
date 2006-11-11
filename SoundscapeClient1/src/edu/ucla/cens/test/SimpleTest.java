@@ -158,7 +158,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * This is the storage used to hold user-specific information.
 	 */
 	public RecordStore userInfo_rs = null;
-	
+
 	/**
 	 * A count of the number of acoust samples taken since application start-up.
 	 */
@@ -228,21 +228,20 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private StringItem myStringItem;
 
-	/** 
+	/**
 	 * Belongs to this.myForm. A text box that shows the user name.
 	 */
 	private TextField userName_strItem;
-	
+
 	// //////////////////////
 	// UI Form: Upload
 	public UploadScreen myUpload;
-	
-	
-	
+
 	// /////////////////////////
 	// UI Menu Commands
-	private Command startUploadScreenCommand = new Command("Start Upload Screen", Command.SCREEN,1);
-	
+	private Command startUploadScreenCommand = new Command(
+			"Start Upload Screen", Command.SCREEN, 1);
+
 	private Command backCommand = new Command("Back", Command.BACK, 1);
 
 	private Command displayCommand = new Command("Meter", Command.SCREEN, 1);
@@ -255,7 +254,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private Command playCommand = new Command("Play", Command.SCREEN, 1);
 
-	private Command uploadScreenCommand = new Command("Upload Screen", Command.SCREEN, 1);
+	private Command uploadScreenCommand = new Command("Upload Screen",
+			Command.SCREEN, 1);
+
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
 	 */
@@ -267,33 +268,34 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				this.recordStore = RecordStore.openRecordStore("data", true);
 				this.recordStore.addRecordListener(this);
 			} catch (RecordStoreNotFoundException e) {
-				this.alertError("Error: RecordStore not found:" + e.getMessage());
+				this.alertError("Error: RecordStore not found:"
+						+ e.getMessage());
 			} catch (RecordStoreFullException e) {
 				this.alertError("Error: RecordStore full:" + e.getMessage());
 			} catch (RecordStoreException e) {
-				this.alertError("Error: RecordStore Exception:" + e.getMessage());
+				this.alertError("Error: RecordStore Exception:"
+						+ e.getMessage());
 			}
 
 			/**
 			 * Open the user info record store
 			 */
 			this.userInfo_rs = RecordStore.openRecordStore("userInfo", true);
-			
-			
+
 			// /////////////////////////////////////////////////
 			// UI Record Form - Record Info
 			this.myForm = new Form("Record Info");
 			//
 			// StringItem: # of Saved Samples
-			this.myStringItem = new StringItem("Taken/Saved/Total Saved:", String
-					.valueOf(-1), Item.PLAIN);
+			this.myStringItem = new StringItem("Taken/Saved/Total Saved:",
+					String.valueOf(-1), Item.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.myStringItem);
 			//
 			// StringItem: user name
-			this.userName_strItem = new TextField("User name", "NA", 32, TextField.ANY);
-			this.setDefaultUserInfo(this.userInfo_rs);
-			this.updateUserInfo(this.userInfo_rs);
+			String _userName = this.getUserInfoRecord(this.userInfo_rs);
+			this.userName_strItem = new TextField("User name", _userName, 32,
+					TextField.ANY);
 			this.myForm.append(this.userName_strItem);
 			//
 			// ChoiceGroup: Actions
@@ -304,11 +306,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Clear", null);
 			this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
-			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true, 5000,
-					50);
+			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
+					5000, 50);
 			this.myForm.append(this.myGaugeTotal);
-			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):", true, 5000,
-					40);
+			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
+					true, 5000, 40);
 			this.myForm.append(this.myGaugeShared);
 			// Add commands.
 			this.myForm.addCommand(this.showCommand);
@@ -329,11 +331,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// Install a Command Listener for the Canvas.
 			this.myCanvas.setCommandListener(this);
 			this.myCanvas.addCommand(this.uploadScreenCommand);
-			
+
 			// this.myForm.addCommand(this.startUploadScreenCommand);
 			this.myForm.addCommand(this.uploadScreenCommand);
 			this.startUploadScreen();
-			
+
 		} catch (Exception e) {
 			this.alertError("Hi Exception " + e.getMessage());
 			e.printStackTrace();
@@ -349,7 +351,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		try {
 			this.myUpload = new UploadScreen(this);
 		} catch (RecordStoreNotOpenException e) {
-			this.alertError("Error starting upload screen: "+ e.getMessage());
+			this.alertError("Error starting upload screen: " + e.getMessage());
 		} catch (NullPointerException e) {
 			this.alertError("Hi Null Exception: " + e.getMessage());
 			e.printStackTrace();
@@ -408,7 +410,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private void uploadScreenCallback() {
 		Display.getDisplay(this).setCurrent(this.myUpload.form);
-		
+
 	}
 
 	/**
@@ -440,7 +442,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (item.equals(this.myChoiceGroupActions)) {
 			this.choiceGroupChanged();
 		} else if (item.equals(this.userName_strItem)) {
-			this.updateUserInfo(this.userInfo_rs);
+			String _userName = this.getUserInfoTextField();
+			this.setUserInfoRecord(this.userInfo_rs, _userName);
 		}
 	}
 
@@ -719,8 +722,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-
-	
 	/**
 	 * This is a helper for RecordListener callbacks. It updates the state of
 	 * this.myStringItem.
@@ -740,36 +741,23 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		return;
 	}
 
-	private void setDefaultUserInfo(RecordStore userInfo) {
-		// If there aren't any records in userInfo, then add "Default".
-		String def = new String("Default");
-		byte[] ba = def.getBytes();
+	// If user record exists, it'll update it.
+	// If user record doesn't exist, it'll add one.
+	private void setUserInfoRecord(RecordStore userInfo, String data) {
+		RecordEnumeration rs_enum = null;
+		byte[] ba = data.getBytes();
+		int recID = -1;
 		try {
 			if (userInfo.getNumRecords() == 0) {
 				userInfo.addRecord(ba, 0, ba.length);
+			} else {
+				rs_enum = this.userInfo_rs.enumerateRecords(null, null, true);
+				recID = rs_enum.nextRecordId();
+				userInfo.setRecord(recID, ba, 0, ba.length);
 			}
 		} catch (RecordStoreNotOpenException e) {
 			e.printStackTrace();
 		} catch (RecordStoreFullException e) {
-			e.printStackTrace();
-		} catch (RecordStoreException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void updateUserInfo(RecordStore userInfo) {
-		RecordEnumeration rs_enum = null;
-		int recID = -1;
-		byte[] recData_ba = null;
-		String recData_str = null;
-		try {	
-			// from userInfo, get the first record.
-			rs_enum = this.recordStore.enumerateRecords(null, null, true);
-			recID = rs_enum.nextRecordId();
-			recData_ba = userInfo.getRecord(recID);
-			recData_str = new String(recData_ba);
-			this.userName_strItem.setString(recData_str);
-		} catch (RecordStoreNotOpenException e) {
 			e.printStackTrace();
 		} catch (InvalidRecordIDException e) {
 			e.printStackTrace();
@@ -777,7 +765,35 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			e.printStackTrace();
 		}
 	}
+	// requires that user record exists, otherwise returns "Default"
+	private String getUserInfoRecord(RecordStore userInfo) {
+		RecordEnumeration rs_enum = null;
+		byte[] recData_ba = null;
+		String recData_str = new String("Default");
+
+		try {
+			rs_enum = userInfo.enumerateRecords(null, null, true);
+			recData_ba = rs_enum.nextRecord();
+			recData_str = new String(recData_ba);
+		} catch (RecordStoreNotOpenException e) {
+			e.printStackTrace();
+		} catch (InvalidRecordIDException e) {
+			e.printStackTrace();
+		} catch (RecordStoreException e) {
+			e.printStackTrace();
+		}
+		return recData_str;
+	}
+
+	private String getUserInfoTextField() {
+		return this.userName_strItem.getString();
+	}
 	
+//	private void setUserInfoTextField(String data) {
+//		this.userName_strItem.setString(data);
+//	}
+	
+
 	/*
 	 * (non-Javadoc)
 	 * 

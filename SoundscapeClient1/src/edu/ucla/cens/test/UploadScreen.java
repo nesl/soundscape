@@ -208,7 +208,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		// UI Form - string items
 		this.form = new Form("Upload Info");
 		this.int_recordsRemaining = this.recordStore.getNumRecords();
-		this.strItem_recordsRemaining = new StringItem("Records Remaining", String
+		this.strItem_recordsRemaining = new StringItem("Records Queued", String
 				.valueOf(this.int_recordsRemaining), Item.PLAIN);
 		this.strItem_recordsSent = new StringItem("Records Sent", String
 				.valueOf(this.int_recordsSent), Item.PLAIN);
@@ -546,7 +546,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 	private void stopCommandCB() {
 		this.state = UploadScreen.STOPPED;
 		this.updateView();
-		this.midlet.alertError("Stop.");
 	}
 
 	/**

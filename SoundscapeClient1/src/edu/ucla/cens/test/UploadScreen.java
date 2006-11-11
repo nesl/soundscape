@@ -263,7 +263,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	public void log(String message) {
-		this.debug.setText(message);
+		//this.debug.setText(message);
 	}
 
 	/**

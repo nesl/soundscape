@@ -283,7 +283,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm = new Form("Record Info");
 			//
 			// StringItem: # of Saved Samples
-			this.myStringItem = new StringItem("Samples Taken:", String
+			this.myStringItem = new StringItem("Records Queued:", String
 					.valueOf(-1), Item.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.myStringItem);
@@ -803,7 +803,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.midlet.MIDlet#startApp()
 	 */
 	protected void startApp() throws MIDletStateChangeException {
-		Display.getDisplay(this).setCurrent(this.myCanvas);
-		this.myCanvas.start();
+//		Display.getDisplay(this).setCurrent(this.myCanvas);
+//		this.myCanvas.start();
+		Display.getDisplay(this).setCurrent(this.myForm);
 	}
 }

@@ -14,7 +14,6 @@ import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
-import javax.microedition.lcdui.Gauge;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.StringItem;
 import javax.microedition.rms.InvalidRecordIDException;
@@ -145,7 +144,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public int int_recordsRemaining = 0;
 
-	public Gauge gauge = null;
+	//public Gauge gauge = null;
 
 	public StringItem strItem_recordsRemaining = null;
 
@@ -223,12 +222,12 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.status = new StringItem("Status", "Idle", Item.PLAIN);
 		this.debug = new StringItem("Debug", "Idle", Item.PLAIN);
 		// UI Form - Gauge
-		this.gauge = new Gauge("Percentage Sent", false, 100, 0);
+		//this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 
 		// UI Form - Assemble Elements
 		this.form.append(this.debug);
 		this.form.append(this.status);
-		this.form.append(this.gauge);
+		//this.form.append(this.gauge);
 		this.form.append(this.strItem_recordsRemaining);
 		this.form.append(this.strItem_recordsSent);
 		this.form.addCommand(this.recordScreenCommand);
@@ -239,6 +238,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 		// UI Form - Set myself as a listener
 		this.form.setCommandListener(this);
+		
+		// Set myself as a record listener
+		this.recordStore.addRecordListener(this);
 	}
 
 	public void popRecord(int recID) throws RecordStoreNotOpenException,
@@ -303,7 +305,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public void recordAdded(RecordStore recordStore, int recordID) {
 		this.updateRecordsRemaining(recordStore);
-		this.updateView();
 	}
 
 	public void recordChanged(RecordStore recordStore, int recordID) {
@@ -334,6 +335,13 @@ public class UploadScreen implements CommandListener, RecordListener {
 			break;
 		}
 
+		// update records remaining
+		this.strItem_recordsRemaining.setText(String
+				.valueOf(this.int_recordsRemaining));
+
+		// update records sent
+		this.strItem_recordsSent.setText(String.valueOf(this.int_recordsSent));
+
 		// update gauge
 		// int percentage = 0;
 		// int recordsTotal = int_recordsRemaining + this.int_recordsSent;
@@ -344,13 +352,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 		// / (1.0 * (this.int_recordsRemaining + this.int_recordsSent)));
 		// }
 		// this.gauge.setValue(percentage);
-
-		// update records remaining
-		this.strItem_recordsRemaining.setText(String
-				.valueOf(this.int_recordsRemaining));
-
-		// update records sent
-		this.strItem_recordsSent.setText(String.valueOf(this.int_recordsSent));
 	}
 
 	public int postViaHttpConnection(String url) { // throws IOException,
@@ -566,6 +567,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 		} catch (RecordStoreNotOpenException e) {
 			this.alertError("RecordStoreNotOpenException: " + e.getMessage());
 		}
+		this.strItem_recordsRemaining.setText(String
+				.valueOf(this.int_recordsRemaining));
+
 	}
 
 	/**

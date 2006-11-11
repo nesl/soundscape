@@ -159,11 +159,19 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public RecordStore recordStore = null;
 
-	public Command backCommand = new Command("Record View", Command.SCREEN, 1);
+	public Command recordScreenCommand = new Command("-> Record Screen",
+			Command.SCREEN, 1);
 
-	public Command uploadCommand = new Command("Upload", Command.SCREEN, 1);
+	public Command meterScreenCommand = new Command("-> Meter Screen",
+			Command.SCREEN, 1);
 
-	public Command stopCommand = new Command("Stop", Command.SCREEN, 1);
+	public Command enableUploadCommand = new Command("* Enable Upload",
+			Command.SCREEN, 1);
+
+	public Command disableUploadCommand = new Command("* Disable Upload",
+			Command.SCREEN, 1);
+
+	public Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
 	public Thread thread = null;
 
@@ -223,9 +231,11 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.append(this.gauge);
 		this.form.append(this.strItem_recordsRemaining);
 		this.form.append(this.strItem_recordsSent);
-		this.form.addCommand(this.backCommand);
-		this.form.addCommand(this.uploadCommand);
-		this.form.addCommand(this.stopCommand);
+		this.form.addCommand(this.recordScreenCommand);
+		this.form.addCommand(this.meterScreenCommand);
+		this.form.addCommand(this.enableUploadCommand);
+		this.form.addCommand(this.disableUploadCommand);
+		this.form.addCommand(this.exitCommand);
 
 		// UI Form - Set myself as a listener
 		this.form.setCommandListener(this);
@@ -276,14 +286,19 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	public void commandAction(Command c, Displayable d) {
-		if (c == this.backCommand) {
+		if (c == this.recordScreenCommand) {
 			Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
-			// this.backCommandCB();
-		} else if (c == this.uploadCommand) {
-			this.uploadCommandCB();
-		} else if (c == this.stopCommand) {
-			this.stopCommandCB();
+		} else if (c == this.meterScreenCommand) {
+			Display.getDisplay(this.midlet).setCurrent(this.midlet.myCanvas);
+			this.midlet.myCanvas.start();
+		} else if (c == this.enableUploadCommand) {
+			this.enableUploadCommandCB();
+		} else if (c == this.disableUploadCommand) {
+			this.disableUploadCommandCB();
+		} else if (c == this.exitCommand) {
+			this.midlet.notifyDestroyed();
 		}
+
 	}
 
 	public void recordAdded(RecordStore recordStore, int recordID) {
@@ -320,19 +335,19 @@ public class UploadScreen implements CommandListener, RecordListener {
 		}
 
 		// update gauge
-//		int percentage = 0;
-//		int recordsTotal = int_recordsRemaining + this.int_recordsSent;
-//		if (recordsTotal > 0) {
-//			float ratio = this.int_recordsSent
-//			percentage = (int) java.lang.Math
-//					.floor((this.int_recordsSent * 1.0)
-//							/ (1.0 * (this.int_recordsRemaining + this.int_recordsSent)));
-//		}
-//		this.gauge.setValue(percentage);
+		// int percentage = 0;
+		// int recordsTotal = int_recordsRemaining + this.int_recordsSent;
+		// if (recordsTotal > 0) {
+		// float ratio = this.int_recordsSent
+		// percentage = (int) java.lang.Math
+		// .floor((this.int_recordsSent * 1.0)
+		// / (1.0 * (this.int_recordsRemaining + this.int_recordsSent)));
+		// }
+		// this.gauge.setValue(percentage);
 
 		// update records remaining
-		this.strItem_recordsRemaining
-				.setText(String.valueOf(this.int_recordsRemaining));
+		this.strItem_recordsRemaining.setText(String
+				.valueOf(this.int_recordsRemaining));
 
 		// update records sent
 		this.strItem_recordsSent.setText(String.valueOf(this.int_recordsSent));
@@ -537,13 +552,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		return result;
 	}
 
-	public void backCommandCB() {
-		this.alertError("Stop.");
-		Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
-		// this.updateView();
-	}
-
-	private void stopCommandCB() {
+	private void disableUploadCommandCB() {
 		this.state = UploadScreen.STOPPED;
 		this.updateView();
 	}
@@ -562,7 +571,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	/**
 	 * 
 	 */
-	private void uploadCommandCB() {
+	private void enableUploadCommandCB() {
 		try {
 			if (this.state == UploadScreen.STOPPED) {
 				this.state = UploadScreen.UPLOADING;

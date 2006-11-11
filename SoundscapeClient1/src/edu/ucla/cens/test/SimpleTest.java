@@ -198,7 +198,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * The Canvas object that draws the graph.
 	 */
-	private HelloCanvas myCanvas;
+	public HelloCanvas myCanvas;
 
 	// ////////////////////////
 	// UI Form: Records
@@ -239,23 +239,19 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	// /////////////////////////
 	// UI Menu Commands
-	private Command startUploadScreenCommand = new Command(
-			"Start Upload Screen", Command.SCREEN, 1);
 
-	private Command backCommand = new Command("Back", Command.BACK, 1);
+	// private Command backCommand = new Command("Back", Command.BACK, 1);
 
-	private Command displayCommand = new Command("Meter", Command.SCREEN, 1);
+	private Command meterScreenCommand = new Command("-> Meter Screen",
+			Command.SCREEN, 1);
+
+	private Command uploadScreenCommand = new Command("-> Upload Screen",
+			Command.SCREEN, 1);
+
+	private Command recordScreenCommand = new Command("-> Record Screen",
+			Command.SCREEN, 1);
 
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
-
-	//private Command showCommand = new Command("Show Levels", Command.SCREEN, 1);
-
-	// private Command recordCommand = new Command("Record", Command.SCREEN, 1);
-
-	//private Command playCommand = new Command("Play", Command.SCREEN, 1);
-
-	private Command uploadScreenCommand = new Command("Upload Screen",
-			Command.SCREEN, 1);
 
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
@@ -287,8 +283,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm = new Form("Record Info");
 			//
 			// StringItem: # of Saved Samples
-			this.myStringItem = new StringItem("Samples Taken:",
-					String.valueOf(-1), Item.PLAIN);
+			this.myStringItem = new StringItem("Samples Taken:", String
+					.valueOf(-1), Item.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.myStringItem);
 			//
@@ -313,10 +309,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					true, 5000, 40);
 			this.myForm.append(this.myGaugeShared);
 			// Add commands.
-			//this.myForm.addCommand(this.showCommand);
-			this.myForm.addCommand(this.displayCommand);
-			this.myForm.addCommand(this.exitCommand);
+			// this.myForm.addCommand(this.showCommand);
+			this.myForm.addCommand(this.meterScreenCommand);
 			this.myForm.addCommand(this.uploadScreenCommand);
+			this.myForm.addCommand(this.exitCommand);
 			// Install Command and Item Listeners for Form.
 			this.myForm.setCommandListener(this);
 			this.myForm.setItemStateListener(this);
@@ -325,15 +321,16 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// UI Canvas (for the sound meter)
 			this.myCanvas = new HelloCanvas(this);
 			// Add commands.
-			this.myCanvas.addCommand(this.backCommand);
-//			this.myCanvas.addCommand(this.playCommand);
-//			this.myCanvas.addCommand(this.recordCommand);
+			// this.myCanvas.addCommand(this.backCommand);
+			// this.myCanvas.addCommand(this.playCommand);
+			// this.myCanvas.addCommand(this.recordCommand);
 			// Install a Command Listener for the Canvas.
 			this.myCanvas.setCommandListener(this);
+			this.myCanvas.addCommand(this.recordScreenCommand);
 			this.myCanvas.addCommand(this.uploadScreenCommand);
-
+			this.myCanvas.addCommand(this.exitCommand);
 			// this.myForm.addCommand(this.startUploadScreenCommand);
-			this.myForm.addCommand(this.uploadScreenCommand);
+			// this.myForm.addCommand(this.uploadScreenCommand);
 			this.startUploadScreen();
 
 		} catch (Exception e) {
@@ -387,24 +384,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (c == this.exitCommand) {
 			this.notifyDestroyed();
 		}
-		if (c == this.backCommand) {
+		else if (c == this.recordScreenCommand) {
 			Display.getDisplay(this).setCurrent(this.myForm);
 		}
-		if (c == this.displayCommand) {
+		else if (c == this.meterScreenCommand) {
 			Display.getDisplay(this).setCurrent(this.myCanvas);
 			this.myCanvas.start();
 		}
-//		if (c == this.recordCommand) {
-//			this.recordCallback2();
-//		}
-//		if (c == this.playCommand) {
-//			this.playCallback2();
-//		}
-		if (c == this.uploadScreenCommand) {
+		else if (c == this.uploadScreenCommand) {
 			this.uploadScreenCallback();
-		}
-		if (c == this.startUploadScreenCommand) {
-			this.startUploadScreen();
 		}
 	}
 
@@ -682,16 +670,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * A helper of this.commandAction. This plays the data contained in
 	 * this.output.
 	 */
-//	private void playCallback2() {
-//		try {
-//			ByteArrayInputStream is = new ByteArrayInputStream(this.output);
-//			Player p = Manager.createPlayer(is, "audio/x-wav");
-//			p.start();
-//		} catch (MediaException me) {
-//		} catch (IOException io) {
-//		}
-//	}
-
+	// private void playCallback2() {
+	// try {
+	// ByteArrayInputStream is = new ByteArrayInputStream(this.output);
+	// Player p = Manager.createPlayer(is, "audio/x-wav");
+	// p.start();
+	// } catch (MediaException me) {
+	// } catch (IOException io) {
+	// }
+	// }
 	/**
 	 * This is the callback for when the user selects "Record", or when the
 	 * timer goes off and it's time to record again. It creates a player...
@@ -765,6 +752,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			e.printStackTrace();
 		}
 	}
+
 	// requires that user record exists, otherwise returns "Default"
 	private String getUserInfoRecord(RecordStore userInfo) {
 		RecordEnumeration rs_enum = null;
@@ -788,11 +776,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private String getUserInfoTextField() {
 		return this.userName_strItem.getString();
 	}
-	
-//	private void setUserInfoTextField(String data) {
-//		this.userName_strItem.setString(data);
-//	}
-	
+
+	// private void setUserInfoTextField(String data) {
+	// this.userName_strItem.setString(data);
+	// }
 
 	/*
 	 * (non-Javadoc)

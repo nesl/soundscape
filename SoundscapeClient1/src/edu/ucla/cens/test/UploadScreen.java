@@ -66,7 +66,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"
 						+ e.getMessage());
-				e.printStackTrace();
+				//e.printStackTrace();
 			} finally {
 				this.updateParentState(UploadScreen.STOPPED);
 				this.parent.updateView();
@@ -82,18 +82,17 @@ public class UploadScreen implements CommandListener, RecordListener {
 				InvalidRecordIDException, RecordStoreException {
 			this.parent.int_recordsRemaining = this.parent.recordStore
 					.getNumRecords();
-			if (this.parent.int_recordsRemaining > 0) {
-				
+			if (this.parent.int_recordsRemaining > 0) {			
 				int result = -1;
 				try {
 					result = this.parent.uploadRecord();
+					if (result != 200) { // result is not 200
+						this.updateParentState(UploadScreen.SLEEPING);
+						this.parent.midlet.alertError("Got a non-200 response! Sleeping...");
+					}
 				} catch (RuntimeException e) {
 					this.updateParentState(UploadScreen.SLEEPING);
 					this.parent.midlet.alertError("Some exception was thrown:" + e.getMessage());
-				}
-				if (result != 200) { // result is not 200
-					this.updateParentState(UploadScreen.SLEEPING);
-					this.parent.midlet.alertError("Got a non-200 response! Sleeping...");
 				}
 			} else { // No more records
 				this.updateParentState(UploadScreen.WAITING);
@@ -295,17 +294,21 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	public void commandAction(Command c, Displayable d) {
-		if (c == this.recordScreenCommand) {
-			Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
-		} else if (c == this.meterScreenCommand) {
-			Display.getDisplay(this.midlet).setCurrent(this.midlet.myCanvas);
-			this.midlet.myCanvas.start();
-		} else if (c == this.enableUploadCommand) {
-			this.enableUploadCommandCB();
-		} else if (c == this.disableUploadCommand) {
-			this.disableUploadCommandCB();
-		} else if (c == this.exitCommand) {
-			this.midlet.notifyDestroyed();
+		try {
+			if (c == this.recordScreenCommand) {
+				Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
+			} else if (c == this.meterScreenCommand) {
+				Display.getDisplay(this.midlet).setCurrent(this.midlet.myCanvas);
+				this.midlet.myCanvas.start();
+			} else if (c == this.enableUploadCommand) {
+				this.enableUploadCommandCB();
+			} else if (c == this.disableUploadCommand) {
+				this.disableUploadCommandCB();
+			} else if (c == this.exitCommand) {
+				this.midlet.notifyDestroyed();
+			}
+		} catch (RuntimeException e) {
+			this.midlet.alertError("commandAction Exception:" + e.getMessage());
 		}
 
 	}

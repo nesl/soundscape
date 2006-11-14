@@ -83,10 +83,17 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.parent.int_recordsRemaining = this.parent.recordStore
 					.getNumRecords();
 			if (this.parent.int_recordsRemaining > 0) {
-				int result = this.parent.uploadRecord();
+				
+				int result = -1;
+				try {
+					result = this.parent.uploadRecord();
+				} catch (RuntimeException e) {
+					this.updateParentState(UploadScreen.SLEEPING);
+					this.parent.midlet.alertError("Some exception was thrown:" + e.getMessage());
+				}
 				if (result != 200) { // result is not 200
 					this.updateParentState(UploadScreen.SLEEPING);
-					this.parent.midlet.alertError("Got a non-200 response!");
+					this.parent.midlet.alertError("Got a non-200 response! Sleeping...");
 				}
 			} else { // No more records
 				this.updateParentState(UploadScreen.WAITING);

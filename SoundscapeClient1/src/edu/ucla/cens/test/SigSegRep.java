@@ -95,17 +95,17 @@ public class SigSegRep {
 	 */
 	public String toXML() {
 		StringBuffer result = new StringBuffer();
-		result.append("<row>");
+		//result.append("<row>");
 		result.append(this.createField("id", String.valueOf(this.id)));
-		// <field name="date">10235135</date>\n
+		// <field name="date">10235135</field>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
-		// <field name="data">124af353d33c341....</data>\n
+		// <field name="data">124af353d33c341....</field>\n
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
 		//String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", b64enc));
 		// </row>\n
-		result.append("</row>");
+		//result.append("</row>");
 		return result.toString();
 	}
 

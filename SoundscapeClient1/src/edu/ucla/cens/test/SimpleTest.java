@@ -231,7 +231,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Belongs to this.myForm. A text box that shows the user name.
 	 */
-	private TextField userName_strItem;
+	public TextField userName_strItem;
 
 	// //////////////////////
 	// UI Form: Upload

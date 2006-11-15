@@ -481,9 +481,19 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.log("Test8");
 
 			postBuf.append(URLEncode.encode("<table>"));
+			postBuf.append(URLEncode.encode("<row>"));
+			
+			// <field name="user">ASDFASDF</field>
+			postBuf.append(URLEncode.encode("<field name=\"user\">"));
+			String _userName = this.midlet.userName_strItem.getString();
+			postBuf.append(URLEncode.encode(_userName));
+			postBuf.append(URLEncode.encode("</field>"));
+			
 			postBuf.append(URLEncode.encode(sigSeg.toXML()));
 			// postBuf.append(sigSeg.toXML());
 			// sigSeg.toXML();
+			
+			postBuf.append(URLEncode.encode("</row>"));
 			postBuf.append(URLEncode.encode("</table>"));
 
 			// URL encode!

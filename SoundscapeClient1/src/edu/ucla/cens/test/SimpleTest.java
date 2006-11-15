@@ -303,10 +303,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
 			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
-					5000, 50);
+					100, 100);
 			this.myForm.append(this.myGaugeTotal);
 			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
-					true, 5000, 40);
+					true, 100, 5);
 			this.myForm.append(this.myGaugeShared);
 			// Add commands.
 			// this.myForm.addCommand(this.showCommand);

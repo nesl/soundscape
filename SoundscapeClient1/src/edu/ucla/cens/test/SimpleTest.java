@@ -383,15 +383,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public void commandAction(Command c, Displayable d) {
 		if (c == this.exitCommand) {
 			this.notifyDestroyed();
-		}
-		else if (c == this.recordScreenCommand) {
+		} else if (c == this.recordScreenCommand) {
 			Display.getDisplay(this).setCurrent(this.myForm);
-		}
-		else if (c == this.meterScreenCommand) {
+		} else if (c == this.meterScreenCommand) {
 			Display.getDisplay(this).setCurrent(this.myCanvas);
 			this.myCanvas.start();
-		}
-		else if (c == this.uploadScreenCommand) {
+		} else if (c == this.uploadScreenCommand) {
 			this.uploadScreenCallback();
 		}
 	}
@@ -478,7 +475,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			if (event.compareTo("PAUSE") == 0) {
 				playerUpdatePause();
 			} else if (event.compareTo("START") == 0) {
-				this.recordCallback2();
+				recordCallback3();
 			}
 		} catch (Exception e) {
 			this.alertError("Exception in handing event:" + event + ":"
@@ -607,7 +604,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
 		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
 		if (selectedStr.equals("Record")) {
-			this.recordCallback2();
+			recordCallback3();
 		} else if (selectedStr.equals("Stop")) {
 			this.stopPlayer = true;
 			this.playerUpdate(null, "PAUSE", null);
@@ -667,6 +664,28 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
+	 * 
+	 */
+	private void recordCallback3() {
+		while (true) {
+			try {
+				this.recordCallback2();
+				break;
+			} catch (MediaException e) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+				}
+			} catch (IOException e) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+				}
+			}
+		}
+	}
+
+	/**
 	 * A helper of this.commandAction. This plays the data contained in
 	 * this.output.
 	 */
@@ -684,29 +703,45 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * timer goes off and it's time to record again. It creates a player...
 	 * starts recording... and creates a thread that will later stop the
 	 * recording.
+	 * 
+	 * @throws MediaException
+	 * @throws IOException
 	 */
-	private void recordCallback2() {
-		// this.alertError("recordCallback2");
+	private void recordCallback2() throws MediaException, IOException {
+		this.stopPlayer = false;
+		this.tempoutput = new ByteArrayOutputStream();
 		try {
-			this.stopPlayer = false;
 			this.p = Manager.createPlayer("capture://audio?encoding=pcm");
-			this.tempoutput = new ByteArrayOutputStream();
-			this.p.realize();
-			this.p.addPlayerListener(this);
-			this.rc = (RecordControl) this.p.getControl("RecordControl");
-			this.rc.setRecordStream(this.tempoutput);
-			this.rc.startRecord();
-			this.p.start();
-			this.myThread = new Thread(new SimpleTestHelper(this,
-					this.myGaugeShared.getValue(), "PAUSE"));
-			this.myThread.start();
-		} catch (IOException ioe) {
-			this.alertError("IOException in recordCallback2:"
-					+ ioe.getMessage());
 		} catch (MediaException me) {
-			this.alertError("MediaException in recordCallback2:"
+			this.alertError("MediaException recordCallback2 createPlayer():"
 					+ me.getMessage());
+			throw (me);
+
+		} catch (IOException ioe) {
+			this.alertError("IOException in recordCallback2 createPlayer():"
+					+ ioe.getMessage());
+			throw (ioe);
 		}
+		try {
+			this.p.realize();
+		} catch (MediaException e1) {
+			this.alertError("MediaException recordCallback2 realize():"
+					+ e1.getMessage());
+			throw (e1);
+		}
+		this.p.addPlayerListener(this);
+		this.rc = (RecordControl) this.p.getControl("RecordControl");
+		this.rc.setRecordStream(this.tempoutput);
+		this.rc.startRecord();
+		try {
+			this.p.start();
+		} catch (MediaException e) {
+			this.alertError("MediaException in recordCallback2 this.p.start:");
+			throw (e);
+		}
+		this.myThread = new Thread(new SimpleTestHelper(this,
+				this.myGaugeShared.getValue(), "PAUSE"));
+		this.myThread.start();
 	}
 
 	/**
@@ -803,8 +838,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.midlet.MIDlet#startApp()
 	 */
 	protected void startApp() throws MIDletStateChangeException {
-//		Display.getDisplay(this).setCurrent(this.myCanvas);
-//		this.myCanvas.start();
+		// Display.getDisplay(this).setCurrent(this.myCanvas);
+		// this.myCanvas.start();
 		Display.getDisplay(this).setCurrent(this.myForm);
 	}
 }

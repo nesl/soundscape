@@ -10,7 +10,7 @@ import javax.microedition.rms.RecordStoreNotOpenException;
 
 /**
  * @author adparker
- *
+ * 
  */
 public class SigSeg implements SensorBaseInterface {
 	/** A handle to the RecordStore object. */
@@ -51,6 +51,16 @@ public class SigSeg implements SensorBaseInterface {
 		this.recordStore = recordStore;
 		int id = this.recordStore.addRecord(null, 0, 0);
 		this.rep = new SigSegRep(id, timeMS, data);
+		this.setRecord();
+	}
+
+	SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
+			int ratio, byte[] data) throws IOException,
+			RecordStoreNotOpenException, RecordStoreFullException,
+			RecordStoreException {
+		this.recordStore = recordStore;
+		int id = this.recordStore.addRecord(null, 0, 0);
+		this.rep = new SigSegRep(id, timeMS, density, speed, ratio, data);
 		this.setRecord();
 	}
 

@@ -438,7 +438,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
 			postBuf.append("&project_id=43");
-			postBuf.append("&tableName=test1");
+			postBuf.append("&tableName=testTraffic");
 			postBuf.append("&data_string=");
 
 			try {

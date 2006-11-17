@@ -20,6 +20,12 @@ public class SigSegRep {
 
 	/** The data associated with the record. */
 	public byte[] data = null;
+	
+	public int density = 5;
+	
+	public int speed = 5;
+	
+	public int ratio = 5;
 
 	/**
 	 * This constructor doesn't do anything.
@@ -53,6 +59,15 @@ public class SigSegRep {
 		this.data = data;
 	}
 
+	public SigSegRep(int id, long timeMS, int density, int speed, int ratio, byte[] data) {
+		this.id = id;
+		this.timeMS = timeMS;
+		this.data = data;
+		this.density = density;
+		this.speed = speed;
+		this.ratio = ratio;
+	}
+	
 	/**
 	 * Constructor that uses specified id and byte[] rep. of SigSegRep.
 	 * 
@@ -81,6 +96,9 @@ public class SigSegRep {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(record);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		this.timeMS = dataIn.readLong();
+		this.density = dataIn.readInt();
+		this.speed = dataIn.readInt();
+		this.speed = dataIn.readInt();
 		this.data = new byte[(int)record.length];
 		dataIn.read(this.data);
 		dataIn.close();
@@ -100,6 +118,9 @@ public class SigSegRep {
 		// <field name="date">10235135</field>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</field>\n
+		result.append(this.createField("density", String.valueOf(this.density)));
+		result.append(this.createField("speed", String.valueOf(this.speed)));
+		result.append(this.createField("ratio", String.valueOf(this.ratio)));
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
 		//String urlenc = URLEncode.encode(b64enc);
@@ -120,6 +141,9 @@ public class SigSegRep {
 		DataOutputStream dataOut = new DataOutputStream(byteOut);
 		try {
 			dataOut.writeLong(this.timeMS);
+			dataOut.writeInt(this.density);
+			dataOut.writeInt(this.speed);
+			dataOut.writeInt(this.ratio);
 			dataOut.write(this.data);
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();

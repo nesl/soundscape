@@ -253,6 +253,20 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
+	// Extra stuff for traffic.
+
+	private Gauge gaugeTrafficDensity;
+
+	private int intTrafficDensity;
+
+	private Gauge gaugeTrafficSpeed;
+
+	private int intTrafficSpeed;
+
+	private Gauge gaugeTrafficTruckRatio;
+
+	private int intTrafficTruckRatio;
+
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
 	 */
@@ -316,6 +330,18 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// Install Command and Item Listeners for Form.
 			this.myForm.setCommandListener(this);
 			this.myForm.setItemStateListener(this);
+
+			// Traffic Gauges
+			this.intTrafficDensity = 5;
+			this.intTrafficSpeed = 5;
+			this.intTrafficTruckRatio = 5;
+			this.gaugeTrafficDensity = new Gauge("Traffic Density", true, 10, 5);
+			this.gaugeTrafficSpeed = new Gauge("Traffic Speed", true, 10, 5);
+			this.gaugeTrafficTruckRatio = new Gauge("Traffic Truck Ratio",
+					true, 10, 5);
+			this.myForm.append(this.gaugeTrafficDensity);
+			this.myForm.append(this.gaugeTrafficSpeed);
+			this.myForm.append(this.gaugeTrafficTruckRatio);
 
 			// /////////////////////////////////////////////////
 			// UI Canvas (for the sound meter)
@@ -429,6 +455,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.userName_strItem)) {
 			String _userName = this.getUserInfoTextField();
 			this.setUserInfoRecord(this.userInfo_rs, _userName);
+		} else if (item.equals(this.gaugeTrafficDensity)) {
+			this.intTrafficDensity = this.gaugeTrafficDensity.getValue();
+		} else if (item.equals(this.gaugeTrafficSpeed)) {
+			this.intTrafficSpeed = this.gaugeTrafficSpeed.getValue();
+		} else if (item.equals(this.gaugeTrafficTruckRatio)) {
+			this.intTrafficTruckRatio = this.gaugeTrafficTruckRatio.getValue();
 		}
 	}
 
@@ -536,7 +568,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (noiseLevel > this.myCanvas.ave) {
 			long timeMS = java.util.Calendar.getInstance().getTime().getTime();
 			// This has the side-effect of writing to the recordStore.
-			new SigSeg(this.recordStore, timeMS, this.output);
+			// CHANGED new SigSeg(this.recordStore, timeMS, this.output);
+			new SigSeg(this.recordStore, timeMS, this.intTrafficDensity,
+					this.intTrafficSpeed, this.intTrafficTruckRatio,
+					this.output);
 		}
 	}
 

@@ -20,12 +20,22 @@ public class SigSegRep {
 
 	/** The data associated with the record. */
 	public byte[] data = null;
-	
-	public int density = 5;
-	
-	public int speed = 5;
-	
-	public int ratio = 5;
+
+	public int density = 0;
+
+	public int speed = 0;
+
+	public int ratio = 0;
+
+	public int proximity = 0;
+
+	public String inOutCar = "";
+
+	public String people = "";
+
+	public String radio = "";
+
+	public String roadType = "";
 
 	/**
 	 * This constructor doesn't do anything.
@@ -59,15 +69,22 @@ public class SigSegRep {
 		this.data = data;
 	}
 
-	public SigSegRep(int id, long timeMS, int density, int speed, int ratio, byte[] data) {
+	public SigSegRep(int id, long timeMS, int density, int speed, int ratio,
+			int proximity, String inOutCar, String people, String radio,
+			String roadType, byte[] data) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
 		this.density = density;
 		this.speed = speed;
 		this.ratio = ratio;
+		this.proximity = proximity;
+		this.inOutCar = inOutCar;
+		this.people = people;
+		this.radio = radio;
+		this.roadType = roadType;
 	}
-	
+
 	/**
 	 * Constructor that uses specified id and byte[] rep. of SigSegRep.
 	 * 
@@ -98,8 +115,13 @@ public class SigSegRep {
 		this.timeMS = dataIn.readLong();
 		this.density = dataIn.readInt();
 		this.speed = dataIn.readInt();
-		this.speed = dataIn.readInt();
-		this.data = new byte[(int)record.length];
+		this.ratio = dataIn.readInt();
+		this.proximity = dataIn.readInt();
+		this.inOutCar = dataIn.readUTF();
+		this.people = dataIn.readUTF();
+		this.radio = dataIn.readUTF();
+		this.roadType = dataIn.readUTF();
+		this.data = new byte[(int) record.length];
 		dataIn.read(this.data);
 		dataIn.close();
 		byteIn.close();
@@ -113,20 +135,27 @@ public class SigSegRep {
 	 */
 	public String toXML() {
 		StringBuffer result = new StringBuffer();
-		//result.append("<row>");
+		// result.append("<row>");
 		result.append(this.createField("id", String.valueOf(this.id)));
 		// <field name="date">10235135</field>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</field>\n
-		result.append(this.createField("density", String.valueOf(this.density)));
+		result
+				.append(this.createField("density", String
+						.valueOf(this.density)));
 		result.append(this.createField("speed", String.valueOf(this.speed)));
 		result.append(this.createField("ratio", String.valueOf(this.ratio)));
+		result.append(this.createField("proximity", String.valueOf(this.proximity)));
+		result.append(this.createField("inOutCar", this.inOutCar));
+		result.append(this.createField("people", this.people));
+		result.append(this.createField("radio", this.radio));
+		result.append(this.createField("roadType", this.roadType));
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
-		//String urlenc = URLEncode.encode(b64enc);
+		// String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", b64enc));
 		// </row>\n
-		//result.append("</row>");
+		// result.append("</row>");
 		return result.toString();
 	}
 
@@ -144,6 +173,11 @@ public class SigSegRep {
 			dataOut.writeInt(this.density);
 			dataOut.writeInt(this.speed);
 			dataOut.writeInt(this.ratio);
+			dataOut.writeInt(this.proximity);
+			dataOut.writeUTF(this.inOutCar);
+			dataOut.writeUTF(this.people);
+			dataOut.writeUTF(this.radio);
+			dataOut.writeUTF(this.roadType);
 			dataOut.write(this.data);
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();

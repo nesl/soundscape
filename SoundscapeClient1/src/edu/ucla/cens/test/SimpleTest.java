@@ -255,17 +255,37 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	// Extra stuff for traffic.
 
-	private Gauge gaugeTrafficDensity;
+	private TextField textField_trafficDensity;
 
 	private int intTrafficDensity;
 
-	private Gauge gaugeTrafficSpeed;
+	private TextField textField_trafficSpeed;
 
 	private int intTrafficSpeed;
 
-	private Gauge gaugeTrafficTruckRatio;
+	private TextField textField_trafficTruckRatio;
 
 	private int intTrafficTruckRatio;
+
+	private TextField textField_proximityToTraffic;
+
+	private int intProximityToTraffic;
+
+	private ChoiceGroup choiceGroup_inOutCar;
+
+	private String strInOutCar;
+
+	private ChoiceGroup choiceGroup_radio;
+
+	private String strRadio;
+
+	private ChoiceGroup choiceGroup_people;
+
+	private String strPeople;
+
+	private ChoiceGroup choiceGroup_roadType;
+
+	private String strRoadType;
 
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
@@ -310,7 +330,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			//
 			// ChoiceGroup: Actions
 			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
-					Choice.EXCLUSIVE);
+					Choice.POPUP);
 			this.myChoiceGroupActions.append("Stop", null);
 			this.myChoiceGroupActions.append("Record", null);
 			this.myChoiceGroupActions.append("Clear", null);
@@ -332,16 +352,62 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.setItemStateListener(this);
 
 			// Traffic Gauges
-			this.intTrafficDensity = 5;
-			this.intTrafficSpeed = 5;
-			this.intTrafficTruckRatio = 5;
-			this.gaugeTrafficDensity = new Gauge("Traffic Density", true, 10, 5);
-			this.gaugeTrafficSpeed = new Gauge("Traffic Speed", true, 10, 5);
-			this.gaugeTrafficTruckRatio = new Gauge("Traffic Truck Ratio",
-					true, 10, 5);
-			this.myForm.append(this.gaugeTrafficDensity);
-			this.myForm.append(this.gaugeTrafficSpeed);
-			this.myForm.append(this.gaugeTrafficTruckRatio);
+			this.intTrafficDensity = 0;
+			this.textField_trafficDensity = new TextField("Traffic Density",
+					"0", 3, TextField.NUMERIC);
+			this.myForm.append(this.textField_trafficDensity);
+
+			this.intProximityToTraffic = 0;
+			this.textField_proximityToTraffic = new TextField(
+					"Traffic Proximity", "0", 3, TextField.NUMERIC);
+			this.myForm.append(this.textField_proximityToTraffic);
+
+			this.intTrafficSpeed = 0;
+			this.textField_trafficSpeed = new TextField("Traffic Speed", "0",
+					3, TextField.NUMERIC);
+			this.myForm.append(this.textField_trafficSpeed);
+
+			this.intTrafficTruckRatio = 0;
+			this.textField_trafficTruckRatio = new TextField(
+					"Traffic Truck Ratio", "0", 3, TextField.NUMERIC);
+			this.myForm.append(this.textField_trafficTruckRatio);
+
+			this.strInOutCar = "NA";
+			this.choiceGroup_inOutCar = new ChoiceGroup("In/Out Car",
+					ChoiceGroup.POPUP);
+			this.choiceGroup_inOutCar.append("NA", null);
+			this.choiceGroup_inOutCar.append("in", null);
+			this.choiceGroup_inOutCar.append("out", null);
+			this.myForm.append(this.choiceGroup_inOutCar);
+
+			this.strPeople = "NA";
+			this.choiceGroup_people = new ChoiceGroup("People Noise",
+					ChoiceGroup.POPUP);
+			this.choiceGroup_people.append("NA", null);
+			this.choiceGroup_people.append("present", null);
+			this.choiceGroup_people.append("not present", null);
+			this.myForm.append(this.choiceGroup_people);
+
+			this.strRadio = "NA";
+			this.choiceGroup_radio = new ChoiceGroup("Radio Noise",
+					ChoiceGroup.POPUP);
+			this.choiceGroup_radio.append("NA", null);
+			this.choiceGroup_radio.append("present", null);
+			this.choiceGroup_radio.append("not present", null);
+			this.myForm.append(this.choiceGroup_radio);
+
+			this.strRoadType = "NA";
+			this.choiceGroup_roadType = new ChoiceGroup("Road Type",
+					ChoiceGroup.POPUP);
+			this.choiceGroup_roadType.append("NA", null);
+			this.choiceGroup_roadType.append("Freeway", null);
+			this.choiceGroup_roadType.append("Surface", null);
+			this.choiceGroup_roadType.append("Dirt", null);
+			this.choiceGroup_roadType.append("Parking Lot", null);
+			this.choiceGroup_roadType.append("Parking Garage", null);
+			this.choiceGroup_roadType.append("Airport", null);
+			this.choiceGroup_roadType.append("Disneyland", null);
+			this.myForm.append(this.choiceGroup_roadType);
 
 			// /////////////////////////////////////////////////
 			// UI Canvas (for the sound meter)
@@ -455,12 +521,30 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.userName_strItem)) {
 			String _userName = this.getUserInfoTextField();
 			this.setUserInfoRecord(this.userInfo_rs, _userName);
-		} else if (item.equals(this.gaugeTrafficDensity)) {
-			this.intTrafficDensity = this.gaugeTrafficDensity.getValue();
-		} else if (item.equals(this.gaugeTrafficSpeed)) {
-			this.intTrafficSpeed = this.gaugeTrafficSpeed.getValue();
-		} else if (item.equals(this.gaugeTrafficTruckRatio)) {
-			this.intTrafficTruckRatio = this.gaugeTrafficTruckRatio.getValue();
+		} else if (item.equals(this.textField_trafficDensity)) {
+			this.intTrafficDensity = Integer
+					.parseInt(this.textField_trafficDensity.getString());
+		} else if (item.equals(this.textField_trafficSpeed)) {
+			this.intTrafficSpeed = Integer.parseInt(this.textField_trafficSpeed
+					.getString());
+		} else if (item.equals(this.textField_trafficTruckRatio)) {
+			this.intTrafficTruckRatio = Integer
+					.parseInt(this.textField_trafficTruckRatio.getString());
+		} else if (item.equals(this.textField_proximityToTraffic)) {
+			this.intProximityToTraffic = Integer
+					.parseInt(this.textField_proximityToTraffic.getString());
+		} else if (item.equals(this.choiceGroup_inOutCar)) {
+			int i = this.choiceGroup_inOutCar.getSelectedIndex();
+			this.strInOutCar = this.choiceGroup_inOutCar.getString(i);
+		} else if (item.equals(this.choiceGroup_people)) {
+			int i = this.choiceGroup_people.getSelectedIndex();
+			this.strPeople = this.choiceGroup_people.getString(i);
+		} else if (item.equals(this.choiceGroup_radio)) {
+			int i = this.choiceGroup_radio.getSelectedIndex();
+			this.strRadio = this.choiceGroup_radio.getString(i);
+		} else if (item.equals(this.choiceGroup_roadType)) {
+			int i = this.choiceGroup_roadType.getSelectedIndex();
+			this.strRoadType = this.choiceGroup_radio.getString(i);
 		}
 	}
 
@@ -571,6 +655,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// CHANGED new SigSeg(this.recordStore, timeMS, this.output);
 			new SigSeg(this.recordStore, timeMS, this.intTrafficDensity,
 					this.intTrafficSpeed, this.intTrafficTruckRatio,
+					this.intProximityToTraffic, this.strInOutCar,
+					this.strPeople, this.strRadio, this.strRoadType,
 					this.output);
 		}
 	}

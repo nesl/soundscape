@@ -27,6 +27,7 @@ import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
 import javax.microedition.media.control.RecordControl;
+import javax.microedition.media.control.VideoControl;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 import javax.microedition.rms.InvalidRecordIDException;
@@ -142,6 +143,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The byte[] representation of the acoustic data recorded.
 	 */
 	public byte[] output = null;
+	
+	/**
+	 * The byte[] representation of the image data captured.
+	 */
+	public byte[] cameraOutput = null;
 
 	/**
 	 * A vector containing power levels of the last several acoustic readings,
@@ -175,18 +181,28 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * The player for the Recording.
 	 */
-	private Player p = null;
+	private Player audioPlayer = null;
 
+	/**
+	 * The player for the camera.
+	 */
+	private Player cameraPlayer = null;
+	
 	/**
 	 * Where the player streams the audio data.
 	 */
 	private ByteArrayOutputStream tempoutput = null;
 
 	/**
-	 * The controller for this.p;
+	 * The controller for this.audioPlayer;
 	 */
 	private RecordControl rc = null;
-
+	
+	/**
+	 * The controller for this.videoPlayer;
+	 */
+	private VideoControl vc = null;
+	
 	/**
 	 * A flag that tells this whether or not stop the player, or to start the
 	 * player.
@@ -657,7 +673,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					this.intTrafficSpeed, this.intTrafficTruckRatio,
 					this.intProximityToTraffic, this.strInOutCar,
 					this.strPeople, this.strRadio, this.strRoadType,
-					this.output);
+					this.output,
+					this.cameraOutput);
 		}
 	}
 
@@ -682,9 +699,20 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void playerUpdateCommitAndClose() throws IOException {
 		// Close down the recorder.
 		this.rc.commit();
-		this.p.close();
+		this.audioPlayer.close();
 		this.output = this.tempoutput.toByteArray();
 		this.tempoutput.close();
+		
+		// Close the camera.
+		try {
+			this.cameraOutput = this.vc.getSnapshot(null);
+		} catch (MediaException e) {
+			this.alertError("MediaException getSnapshot: " + e.getMessage());
+			this.cameraOutput = null;
+		}
+		this.vc = null;
+		this.cameraPlayer.close();
+
 	}
 
 	/**
@@ -832,7 +860,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		this.stopPlayer = false;
 		this.tempoutput = new ByteArrayOutputStream();
 		try {
-			this.p = Manager.createPlayer("capture://audio?encoding=pcm");
+			this.audioPlayer = Manager.createPlayer("capture://audio?encoding=pcm");
+			this.cameraPlayer = Manager.createPlayer("capture://video");
 		} catch (MediaException me) {
 			this.alertError("MediaException recordCallback2 createPlayer():"
 					+ me.getMessage());
@@ -844,18 +873,22 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			throw (ioe);
 		}
 		try {
-			this.p.realize();
+			this.audioPlayer.realize();
+			this.cameraPlayer.realize();
 		} catch (MediaException e1) {
 			this.alertError("MediaException recordCallback2 realize():"
 					+ e1.getMessage());
 			throw (e1);
 		}
-		this.p.addPlayerListener(this);
-		this.rc = (RecordControl) this.p.getControl("RecordControl");
+		this.audioPlayer.addPlayerListener(this);
+		
+		this.rc = (RecordControl) this.audioPlayer.getControl("RecordControl");
+		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
+		
 		this.rc.setRecordStream(this.tempoutput);
 		this.rc.startRecord();
 		try {
-			this.p.start();
+			this.audioPlayer.start();
 		} catch (MediaException e) {
 			this.alertError("MediaException in recordCallback2 this.p.start:");
 			throw (e);

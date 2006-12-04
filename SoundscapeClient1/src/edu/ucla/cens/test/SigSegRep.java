@@ -21,6 +21,8 @@ public class SigSegRep {
 	/** The data associated with the record. */
 	public byte[] data = null;
 
+	public byte[] cameraData = null;
+	
 	public int density = 0;
 
 	public int speed = 0;
@@ -50,7 +52,7 @@ public class SigSegRep {
 	 *            ID of corresponding record ID in some record store.
 	 */
 	public SigSegRep(int id) {
-		this(id, (long) -1, (byte[]) null);
+		this(id, (long) -1, (byte[]) null, (byte[]) null);
 	}
 
 	/**
@@ -63,18 +65,20 @@ public class SigSegRep {
 	 * @param data -
 	 *            the data. NULL means not initialized.
 	 */
-	public SigSegRep(int id, long timeMS, byte[] data) {
+	public SigSegRep(int id, long timeMS, byte[] data, byte[] cameraData) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
+		this.cameraData = cameraData;
 	}
 
 	public SigSegRep(int id, long timeMS, int density, int speed, int ratio,
 			int proximity, String inOutCar, String people, String radio,
-			String roadType, byte[] data) {
+			String roadType, byte[] data, byte[] cameraData) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
+		this.cameraData = cameraData;
 		this.density = density;
 		this.speed = speed;
 		this.ratio = ratio;
@@ -121,8 +125,15 @@ public class SigSegRep {
 		this.people = dataIn.readUTF();
 		this.radio = dataIn.readUTF();
 		this.roadType = dataIn.readUTF();
-		this.data = new byte[(int) record.length];
-		dataIn.read(this.data);
+		
+		int dataLength = dataIn.readInt();
+		this.data = new byte[dataLength];
+		dataIn.read(data, 0, dataLength);
+		
+		int cameraDataLength = dataIn.readInt();
+		this.cameraData = new byte[cameraDataLength];
+		dataIn.read(cameraData, 0, cameraDataLength);
+		
 		dataIn.close();
 		byteIn.close();
 	}
@@ -145,17 +156,24 @@ public class SigSegRep {
 						.valueOf(this.density)));
 		result.append(this.createField("speed", String.valueOf(this.speed)));
 		result.append(this.createField("ratio", String.valueOf(this.ratio)));
-		result.append(this.createField("proximity", String.valueOf(this.proximity)));
+		result.append(this.createField("proximity", String
+				.valueOf(this.proximity)));
 		result.append(this.createField("inOutCar", this.inOutCar));
 		result.append(this.createField("people", this.people));
 		result.append(this.createField("radio", this.radio));
 		result.append(this.createField("roadType", this.roadType));
+		
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
 		// String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", b64enc));
 		// </row>\n
 		// result.append("</row>");
+		
+		b64charar = Base64Coder.encode(this.cameraData);
+		b64enc = String.valueOf(b64charar);
+		result.append(this.createField("cameraData", b64enc));
+		
 		return result.toString();
 	}
 
@@ -178,7 +196,10 @@ public class SigSegRep {
 			dataOut.writeUTF(this.people);
 			dataOut.writeUTF(this.radio);
 			dataOut.writeUTF(this.roadType);
+			dataOut.writeInt(this.data.length);
 			dataOut.write(this.data);
+			dataOut.writeInt(this.cameraData.length);
+			dataOut.write(this.cameraData);
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

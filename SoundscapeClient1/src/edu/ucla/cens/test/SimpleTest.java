@@ -38,13 +38,14 @@ import javax.microedition.rms.RecordStoreException;
 import javax.microedition.rms.RecordStoreFullException;
 import javax.microedition.rms.RecordStoreNotFoundException;
 import javax.microedition.rms.RecordStoreNotOpenException;
+import javax.microedition.location.*;
 
 /**
  * @author adparker
  * 
  */
 public class SimpleTest extends MIDlet implements CommandListener,
-		PlayerListener, ItemStateListener, RecordListener {
+		PlayerListener, ItemStateListener, RecordListener /* ,LocationListener */{
 
 	private class SimpleTestHelper implements Runnable {
 		/**
@@ -143,7 +144,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The byte[] representation of the acoustic data recorded.
 	 */
 	public byte[] output = null;
-	
+
 	/**
 	 * The byte[] representation of the image data captured.
 	 */
@@ -187,7 +188,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The player for the camera.
 	 */
 	private Player cameraPlayer = null;
-	
+
 	/**
 	 * Where the player streams the audio data.
 	 */
@@ -197,12 +198,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The controller for this.audioPlayer;
 	 */
 	private RecordControl rc = null;
-	
+
 	/**
 	 * The controller for this.videoPlayer;
 	 */
 	private VideoControl vc = null;
-	
+
 	/**
 	 * A flag that tells this whether or not stop the player, or to start the
 	 * player.
@@ -350,6 +351,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Stop", null);
 			this.myChoiceGroupActions.append("Record", null);
 			this.myChoiceGroupActions.append("Clear", null);
+			this.myChoiceGroupActions.append("Location", null);
 			this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
 			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
@@ -445,6 +447,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.alertError("Hi Exception " + e.getMessage());
 			e.printStackTrace();
 		}
+
+// if (SimpleTest.isLocationApiSupported()) {
+// this.alertError("location api is supported");
+// } else {
+// this.alertError("location api not supported");
+// }
+
 	}
 
 	/**
@@ -673,8 +682,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					this.intTrafficSpeed, this.intTrafficTruckRatio,
 					this.intProximityToTraffic, this.strInOutCar,
 					this.strPeople, this.strRadio, this.strRoadType,
-					this.output,
-					this.cameraOutput);
+					this.output, this.cameraOutput);
 		}
 	}
 
@@ -702,15 +710,17 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		this.audioPlayer.close();
 		this.output = this.tempoutput.toByteArray();
 		this.tempoutput.close();
-		
+
 		// Close the camera.
 		try {
-			this.cameraOutput = this.vc.getSnapshot("encoding=png&width=80&height=60");
+			this.cameraOutput = this.vc
+					.getSnapshot("encoding=png&width=80&height=60");
 		} catch (MediaException e) {
 			this.alertError("MediaException getSnapshot: " + e.getMessage());
 			this.cameraOutput = null;
 		} catch (IllegalStateException e) {
-			this.alertError("IllegalStateException getSnapshot: " + e.getMessage());
+			this.alertError("IllegalStateException getSnapshot: "
+					+ e.getMessage());
 			this.cameraOutput = null;
 		} catch (SecurityException e) {
 			this.alertError("SecurityException getSnapshot: " + e.getMessage());
@@ -778,6 +788,36 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			} catch (RecordStoreException e) {
 				e.printStackTrace();
 			}
+		} else if (selectedStr.equals("Location")) {
+			try {
+			    // Create a Criteria object for defining desired selection
+				// criteria
+			    Criteria cr = new Criteria();
+			    // Specify horizontal accuracy of 500 meters, leave other
+				// parameters
+			    // at default values.
+			    cr.setHorizontalAccuracy(500);
+			   
+			    LocationProvider lp = LocationProvider.getInstance(cr);
+
+			    // get the location, one minute timeout
+			    Location l = lp.getLocation(60);
+
+			    Coordinates c = l.getQualifiedCoordinates();
+			    
+			    if (c != null) {
+			       // use coordinate information
+			       this.alertError("location:" + c.toString());
+			    }
+			    else {
+			    	this.alertError("error getting location");
+			    }
+			} catch (LocationException e) {
+			   // not able to retrive location information
+			   this.alertError("LocationException:"+e.getMessage());
+			} catch (InterruptedException e) {
+				this.alertError("location InterruptedException" + e.getMessage());
+			} 
 		}
 
 	}
@@ -866,7 +906,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		this.stopPlayer = false;
 		this.tempoutput = new ByteArrayOutputStream();
 		try {
-			this.audioPlayer = Manager.createPlayer("capture://audio?encoding=pcm");
+			this.audioPlayer = Manager
+					.createPlayer("capture://audio?encoding=pcm");
 			this.cameraPlayer = Manager.createPlayer("capture://video");
 		} catch (MediaException me) {
 			this.alertError("MediaException recordCallback2 createPlayer():"
@@ -887,7 +928,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			throw (e1);
 		}
 		this.audioPlayer.addPlayerListener(this);
-		
+
 		this.rc = (RecordControl) this.audioPlayer.getControl("RecordControl");
 		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
 		this.vc.initDisplayMode(VideoControl.USE_GUI_PRIMITIVE, null);
@@ -1002,5 +1043,25 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		// Display.getDisplay(this).setCurrent(this.myCanvas);
 		// this.myCanvas.start();
 		Display.getDisplay(this).setCurrent(this.myForm);
+	}
+
+	// public void locationUpdated(LocationProvider arg0, Location arg1) {
+	// // TODO Auto-generated method stub
+	//
+	// }
+	//
+	// public void providerStateChanged(LocationProvider arg0, int arg1) {
+	// // TODO Auto-generated method stub
+	//
+	// }
+
+	/**
+	 * Checks whether Location API is supported.
+	 * 
+	 * @return a boolean indicating is Location API supported.
+	 */
+	public static boolean isLocationApiSupported() {
+		String version = System.getProperty("microedition.location.version");
+		return (version != null && !version.equals("")) ? true : false;
 	}
 }

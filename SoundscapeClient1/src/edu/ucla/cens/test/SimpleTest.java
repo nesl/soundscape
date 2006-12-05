@@ -807,7 +807,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			    
 			    if (c != null) {
 			       // use coordinate information
-			       this.alertError("location:" + c.toString());
+			       this.alertError("lat:" + c.getLatitude() + "\nlon:" + c.getLongitude());
 			    }
 			    else {
 			    	this.alertError("error getting location");

@@ -705,13 +705,19 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		
 		// Close the camera.
 		try {
-			this.cameraOutput = this.vc.getSnapshot(null);
+			this.cameraOutput = this.vc.getSnapshot("encoding=png&width=80&height=60");
 		} catch (MediaException e) {
 			this.alertError("MediaException getSnapshot: " + e.getMessage());
 			this.cameraOutput = null;
+		} catch (IllegalStateException e) {
+			this.alertError("IllegalStateException getSnapshot: " + e.getMessage());
+			this.cameraOutput = null;
+		} catch (SecurityException e) {
+			this.alertError("SecurityException getSnapshot: " + e.getMessage());
+			this.cameraOutput = null;
 		}
-		this.vc = null;
 		this.cameraPlayer.close();
+		this.vc = null;
 
 	}
 
@@ -884,11 +890,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		
 		this.rc = (RecordControl) this.audioPlayer.getControl("RecordControl");
 		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
-		
+		this.vc.initDisplayMode(VideoControl.USE_GUI_PRIMITIVE, null);
 		this.rc.setRecordStream(this.tempoutput);
 		this.rc.startRecord();
 		try {
 			this.audioPlayer.start();
+			this.cameraPlayer.start();
 		} catch (MediaException e) {
 			this.alertError("MediaException in recordCallback2 this.p.start:");
 			throw (e);

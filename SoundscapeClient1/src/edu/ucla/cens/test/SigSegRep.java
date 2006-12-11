@@ -39,6 +39,9 @@ public class SigSegRep {
 
 	public String roadType = "";
 
+	public double lat = 0;
+	public double lon = 0;
+	
 	/**
 	 * This constructor doesn't do anything.
 	 */
@@ -52,7 +55,7 @@ public class SigSegRep {
 	 *            ID of corresponding record ID in some record store.
 	 */
 	public SigSegRep(int id) {
-		this(id, (long) -1, (byte[]) null, (byte[]) null);
+		this(id, (long) -1, (byte[]) null, (byte[]) null, 0, 0);
 	}
 
 	/**
@@ -65,16 +68,18 @@ public class SigSegRep {
 	 * @param data -
 	 *            the data. NULL means not initialized.
 	 */
-	public SigSegRep(int id, long timeMS, byte[] data, byte[] cameraData) {
+	public SigSegRep(int id, long timeMS, byte[] data, byte[] cameraData, double lat, double lon) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
 		this.cameraData = cameraData;
+		this.lat = lat;
+		this.lon = lon;
 	}
 
 	public SigSegRep(int id, long timeMS, int density, int speed, int ratio,
 			int proximity, String inOutCar, String people, String radio,
-			String roadType, byte[] data, byte[] cameraData) {
+			String roadType, byte[] data, byte[] cameraData, double lat, double lon) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
@@ -87,6 +92,8 @@ public class SigSegRep {
 		this.people = people;
 		this.radio = radio;
 		this.roadType = roadType;
+		this.lat = lat;
+		this.lon = lon;
 	}
 
 	/**
@@ -134,6 +141,9 @@ public class SigSegRep {
 		this.cameraData = new byte[cameraDataLength];
 		dataIn.read(cameraData, 0, cameraDataLength);
 		
+		this.lat = dataIn.readDouble();
+		this.lon = dataIn.readDouble();
+		
 		dataIn.close();
 		byteIn.close();
 	}
@@ -174,6 +184,10 @@ public class SigSegRep {
 		b64enc = String.valueOf(b64charar);
 		result.append(this.createField("cameraData", b64enc));
 		
+		result.append(this.createField("lat", String.valueOf(this.lat)));
+		result.append(this.createField("lon", String.valueOf(this.lon)));
+		
+		
 		return result.toString();
 	}
 
@@ -200,6 +214,10 @@ public class SigSegRep {
 			dataOut.write(this.data);
 			dataOut.writeInt(this.cameraData.length);
 			dataOut.write(this.cameraData);
+			dataOut.writeDouble(this.lat);
+			dataOut.writeDouble(this.lon);
+			
+			
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

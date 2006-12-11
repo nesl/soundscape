@@ -151,6 +151,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public byte[] cameraOutput = null;
 
 	/**
+	 * Latitude and longitude
+	 */
+	public double lat = 0;
+	public double lon = 0;
+	
+	/**
 	 * A vector containing power levels of the last several acoustic readings,
 	 * in order from oldest to most recent.
 	 */
@@ -448,11 +454,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			e.printStackTrace();
 		}
 
-// if (SimpleTest.isLocationApiSupported()) {
-// this.alertError("location api is supported");
-// } else {
-// this.alertError("location api not supported");
-// }
+		// if (SimpleTest.isLocationApiSupported()) {
+		// this.alertError("location api is supported");
+		// } else {
+		// this.alertError("location api not supported");
+		// }
 
 	}
 
@@ -682,7 +688,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					this.intTrafficSpeed, this.intTrafficTruckRatio,
 					this.intProximityToTraffic, this.strInOutCar,
 					this.strPeople, this.strRadio, this.strRoadType,
-					this.output, this.cameraOutput);
+					this.output, this.cameraOutput, this.lat, this.lon);
 		}
 	}
 
@@ -728,6 +734,17 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 		this.cameraPlayer.close();
 		this.vc = null;
+		
+		// Get Coordinates
+		Coordinates c = getLocation();
+		if (c != null) {
+			this.lat = c.getLatitude();
+			this.lon = c.getLongitude();
+		} else {
+			this.lat = 0;
+			this.lon = 0;
+		}
+		
 
 	}
 
@@ -789,36 +806,45 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				e.printStackTrace();
 			}
 		} else if (selectedStr.equals("Location")) {
-			try {
-			    // Create a Criteria object for defining desired selection
-				// criteria
-			    Criteria cr = new Criteria();
-			    // Specify horizontal accuracy of 500 meters, leave other
-				// parameters
-			    // at default values.
-			    cr.setHorizontalAccuracy(500);
-			   
-			    LocationProvider lp = LocationProvider.getInstance(cr);
-
-			    // get the location, one minute timeout
-			    Location l = lp.getLocation(60);
-
-			    Coordinates c = l.getQualifiedCoordinates();
-			    
-			    if (c != null) {
-			       // use coordinate information
-			       this.alertError("lat:" + c.getLatitude() + "\nlon:" + c.getLongitude());
-			    }
-			    else {
-			    	this.alertError("error getting location");
-			    }
-			} catch (LocationException e) {
-			   // not able to retrive location information
-			   this.alertError("LocationException:"+e.getMessage());
-			} catch (InterruptedException e) {
-				this.alertError("location InterruptedException" + e.getMessage());
-			} 
+			Coordinates c = getLocation();
+			if (c != null) {
+				// use coordinate information
+				this.alertError("lat:" + c.getLatitude() + "\nlon:"
+						+ c.getLongitude());
+			} else {
+				this.alertError("error getting location");
+			}
 		}
+	}
+
+	/**
+	 * 
+	 */
+	private Coordinates getLocation() {
+		Coordinates c = null;
+		try {
+			// Create a Criteria object for defining desired selection
+			// criteria
+			Criteria cr = new Criteria();
+			// Specify horizontal accuracy of 500 meters, leave other
+			// parameters
+			// at default values.
+			cr.setHorizontalAccuracy(500);
+
+			LocationProvider lp = LocationProvider.getInstance(cr);
+
+			// get the location, one minute timeout
+			Location l = lp.getLocation(60);
+
+			c = l.getQualifiedCoordinates();
+			
+		} catch (LocationException e) {
+			// not able to retrive location information
+			this.alertError("LocationException:" + e.getMessage());
+		} catch (InterruptedException e) {
+			this.alertError("location InterruptedException" + e.getMessage());
+		}
+		return c;
 
 	}
 

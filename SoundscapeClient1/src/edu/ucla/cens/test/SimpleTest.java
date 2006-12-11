@@ -155,6 +155,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public double lat = 0;
 	public double lon = 0;
+	public LocationProvider lp = null;
 	
 	/**
 	 * A vector containing power levels of the last several acoustic readings,
@@ -744,6 +745,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.lat = 0;
 			this.lon = 0;
 		}
+		if (c != null) {
+			this.alertError("lat:" + c.getLatitude() + "\nlon:"
+					+ c.getLongitude());
+		} else {
+			this.alertError("error getting location");
+		}
 		
 
 	}
@@ -830,11 +837,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// parameters
 			// at default values.
 			cr.setHorizontalAccuracy(500);
+			if (this.lp == null) {
+				this.lp = LocationProvider.getInstance(cr);
+			}
 
-			LocationProvider lp = LocationProvider.getInstance(cr);
-
-			// get the location, one minute timeout
-			Location l = lp.getLocation(60);
+			// get the location, 30 second timeout
+			Location l = this.lp.getLocation(30);
 
 			c = l.getQualifiedCoordinates();
 			

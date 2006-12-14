@@ -77,24 +77,24 @@ public class SigSegRep {
 		this.lon = lon;
 	}
 
-	public SigSegRep(int id, long timeMS, int density, int speed, int ratio,
-			int proximity, String inOutCar, String people, String radio,
-			String roadType, byte[] data, byte[] cameraData, double lat, double lon) {
-		this.id = id;
-		this.timeMS = timeMS;
-		this.data = data;
-		this.cameraData = cameraData;
-		this.density = density;
-		this.speed = speed;
-		this.ratio = ratio;
-		this.proximity = proximity;
-		this.inOutCar = inOutCar;
-		this.people = people;
-		this.radio = radio;
-		this.roadType = roadType;
-		this.lat = lat;
-		this.lon = lon;
-	}
+//	public SigSegRep(int id, long timeMS, int density, int speed, int ratio,
+//			int proximity, String inOutCar, String people, String radio,
+//			String roadType, byte[] data, byte[] cameraData, double lat, double lon) {
+//		this.id = id;
+//		this.timeMS = timeMS;
+//		this.data = data;
+//		this.cameraData = cameraData;
+//		this.density = density;
+//		this.speed = speed;
+//		this.ratio = ratio;
+//		this.proximity = proximity;
+//		this.inOutCar = inOutCar;
+//		this.people = people;
+//		this.radio = radio;
+//		this.roadType = roadType;
+//		this.lat = lat;
+//		this.lon = lon;
+//	}
 
 	/**
 	 * Constructor that uses specified id and byte[] rep. of SigSegRep.
@@ -124,14 +124,14 @@ public class SigSegRep {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(record);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		this.timeMS = dataIn.readLong();
-		this.density = dataIn.readInt();
-		this.speed = dataIn.readInt();
-		this.ratio = dataIn.readInt();
-		this.proximity = dataIn.readInt();
-		this.inOutCar = dataIn.readUTF();
-		this.people = dataIn.readUTF();
-		this.radio = dataIn.readUTF();
-		this.roadType = dataIn.readUTF();
+//		this.density = dataIn.readInt();
+//		this.speed = dataIn.readInt();
+//		this.ratio = dataIn.readInt();
+//		this.proximity = dataIn.readInt();
+//		this.inOutCar = dataIn.readUTF();
+//		this.people = dataIn.readUTF();
+//		this.radio = dataIn.readUTF();
+//		this.roadType = dataIn.readUTF();
 		
 		int dataLength = dataIn.readInt();
 		this.data = new byte[dataLength];
@@ -161,17 +161,17 @@ public class SigSegRep {
 		// <field name="date">10235135</field>\n
 		result.append(this.createField("date", String.valueOf(this.timeMS)));
 		// <field name="data">124af353d33c341....</field>\n
-		result
-				.append(this.createField("density", String
-						.valueOf(this.density)));
-		result.append(this.createField("speed", String.valueOf(this.speed)));
-		result.append(this.createField("ratio", String.valueOf(this.ratio)));
-		result.append(this.createField("proximity", String
-				.valueOf(this.proximity)));
-		result.append(this.createField("inOutCar", this.inOutCar));
-		result.append(this.createField("people", this.people));
-		result.append(this.createField("radio", this.radio));
-		result.append(this.createField("roadType", this.roadType));
+//		result
+//				.append(this.createField("density", String
+//						.valueOf(this.density)));
+//		result.append(this.createField("speed", String.valueOf(this.speed)));
+//		result.append(this.createField("ratio", String.valueOf(this.ratio)));
+//		result.append(this.createField("proximity", String
+//				.valueOf(this.proximity)));
+//		result.append(this.createField("inOutCar", this.inOutCar));
+//		result.append(this.createField("people", this.people));
+//		result.append(this.createField("radio", this.radio));
+//		result.append(this.createField("roadType", this.roadType));
 		
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
@@ -202,14 +202,14 @@ public class SigSegRep {
 		DataOutputStream dataOut = new DataOutputStream(byteOut);
 		try {
 			dataOut.writeLong(this.timeMS);
-			dataOut.writeInt(this.density);
-			dataOut.writeInt(this.speed);
-			dataOut.writeInt(this.ratio);
-			dataOut.writeInt(this.proximity);
-			dataOut.writeUTF(this.inOutCar);
-			dataOut.writeUTF(this.people);
-			dataOut.writeUTF(this.radio);
-			dataOut.writeUTF(this.roadType);
+//			dataOut.writeInt(this.density);
+//			dataOut.writeInt(this.speed);
+//			dataOut.writeInt(this.ratio);
+//			dataOut.writeInt(this.proximity);
+//			dataOut.writeUTF(this.inOutCar);
+//			dataOut.writeUTF(this.people);
+//			dataOut.writeUTF(this.radio);
+//			dataOut.writeUTF(this.roadType);
 			dataOut.writeInt(this.data.length);
 			dataOut.write(this.data);
 			dataOut.writeInt(this.cameraData.length);

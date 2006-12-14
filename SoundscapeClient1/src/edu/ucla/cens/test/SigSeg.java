@@ -54,18 +54,18 @@ public class SigSeg implements SensorBaseInterface {
 		this.setRecord();
 	}
 
-	SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
-			int ratio, int proximity, String inOutCar, String people,
-			String radio, String roadType, byte[] data, byte[] cameraData,
-			double lat, double lon)
-			throws IOException, RecordStoreNotOpenException,
-			RecordStoreFullException, RecordStoreException {
-		this.recordStore = recordStore;
-		int id = this.recordStore.addRecord(null, 0, 0);
-		this.rep = new SigSegRep(id, timeMS, density, speed, ratio, proximity,
-				inOutCar, people, radio, roadType, data, cameraData, lat, lon);
-		this.setRecord();
-	}
+//	SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
+//			int ratio, int proximity, String inOutCar, String people,
+//			String radio, String roadType, byte[] data, byte[] cameraData,
+//			double lat, double lon)
+//			throws IOException, RecordStoreNotOpenException,
+//			RecordStoreFullException, RecordStoreException {
+//		this.recordStore = recordStore;
+//		int id = this.recordStore.addRecord(null, 0, 0);
+//		this.rep = new SigSegRep(id, timeMS, density, speed, ratio, proximity,
+//				inOutCar, people, radio, roadType, data, cameraData, lat, lon);
+//		this.setRecord();
+//	}
 
 	/**
 	 * Constructor that links into an existing record entry.

@@ -75,7 +75,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		 */
 		SimpleTestHelper(SimpleTest midlet, int sleepMS, String msg) {
 			this.midlet = midlet;
-			this.sleepMS = sleepMS * 100;
+			this.sleepMS = sleepMS;
 			this.msg = msg;
 		}
 
@@ -154,9 +154,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * Latitude and longitude
 	 */
 	public double lat = 0;
+
 	public double lon = 0;
+
 	public LocationProvider lp = null;
-	
+
 	/**
 	 * A vector containing power levels of the last several acoustic readings,
 	 * in order from oldest to most recent.
@@ -277,39 +279,47 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
+	private TextField textField_totalLength_ms;
+
+	private int int_totalLength_ms;
+
+	private TextField textField_sharedLength_ms;
+
+	private int int_sharedLength_ms;
+
 	// Extra stuff for traffic.
 
-	private TextField textField_trafficDensity;
-
-	private int intTrafficDensity;
-
-	private TextField textField_trafficSpeed;
-
-	private int intTrafficSpeed;
-
-	private TextField textField_trafficTruckRatio;
-
-	private int intTrafficTruckRatio;
-
-	private TextField textField_proximityToTraffic;
-
-	private int intProximityToTraffic;
-
-	private ChoiceGroup choiceGroup_inOutCar;
-
-	private String strInOutCar;
-
-	private ChoiceGroup choiceGroup_radio;
-
-	private String strRadio;
-
-	private ChoiceGroup choiceGroup_people;
-
-	private String strPeople;
-
-	private ChoiceGroup choiceGroup_roadType;
-
-	private String strRoadType;
+//	private TextField textField_trafficDensity;
+//
+//	private int intTrafficDensity;
+//
+//	private TextField textField_trafficSpeed;
+//
+//	private int intTrafficSpeed;
+//
+//	private TextField textField_trafficTruckRatio;
+//
+//	private int intTrafficTruckRatio;
+//
+//	private TextField textField_proximityToTraffic;
+//
+//	private int intProximityToTraffic;
+//
+//	private ChoiceGroup choiceGroup_inOutCar;
+//
+//	private String strInOutCar;
+//
+//	private ChoiceGroup choiceGroup_radio;
+//
+//	private String strRadio;
+//
+//	private ChoiceGroup choiceGroup_people;
+//
+//	private String strPeople;
+//
+//	private ChoiceGroup choiceGroup_roadType;
+//
+//	private String strRoadType;
 
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
@@ -359,14 +369,14 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Record", null);
 			this.myChoiceGroupActions.append("Clear", null);
 			this.myChoiceGroupActions.append("Location", null);
-			this.myForm.append(this.myChoiceGroupActions);
+			// this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
 			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
 					100, 100);
 			this.myForm.append(this.myGaugeTotal);
 			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
 					true, 100, 5);
-			this.myForm.append(this.myGaugeShared);
+			// this.myForm.append(this.myGaugeShared);
 			// Add commands.
 			// this.myForm.addCommand(this.showCommand);
 			this.myForm.addCommand(this.meterScreenCommand);
@@ -376,63 +386,73 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.setCommandListener(this);
 			this.myForm.setItemStateListener(this);
 
-			// Traffic Gauges
-			this.intTrafficDensity = 0;
-			this.textField_trafficDensity = new TextField("Traffic Density",
+			this.int_totalLength_ms = 0;
+			this.textField_totalLength_ms = new TextField("Total Period (ms)",
 					"0", 3, TextField.NUMERIC);
-			this.myForm.append(this.textField_trafficDensity);
+			this.myForm.append(this.textField_totalLength_ms);
 
-			this.intProximityToTraffic = 0;
-			this.textField_proximityToTraffic = new TextField(
-					"Traffic Proximity", "0", 3, TextField.NUMERIC);
-			this.myForm.append(this.textField_proximityToTraffic);
+			this.int_sharedLength_ms = 0;
+			this.textField_sharedLength_ms = new TextField("Shared Period(ms)",
+					"0", 3, TextField.NUMERIC);
+			this.myForm.append(this.textField_sharedLength_ms);
 
-			this.intTrafficSpeed = 0;
-			this.textField_trafficSpeed = new TextField("Traffic Speed", "0",
-					3, TextField.NUMERIC);
-			this.myForm.append(this.textField_trafficSpeed);
-
-			this.intTrafficTruckRatio = 0;
-			this.textField_trafficTruckRatio = new TextField(
-					"Traffic Truck Ratio", "0", 3, TextField.NUMERIC);
-			this.myForm.append(this.textField_trafficTruckRatio);
-
-			this.strInOutCar = "NA";
-			this.choiceGroup_inOutCar = new ChoiceGroup("In/Out Car",
-					ChoiceGroup.POPUP);
-			this.choiceGroup_inOutCar.append("NA", null);
-			this.choiceGroup_inOutCar.append("in", null);
-			this.choiceGroup_inOutCar.append("out", null);
-			this.myForm.append(this.choiceGroup_inOutCar);
-
-			this.strPeople = "NA";
-			this.choiceGroup_people = new ChoiceGroup("People Noise",
-					ChoiceGroup.POPUP);
-			this.choiceGroup_people.append("NA", null);
-			this.choiceGroup_people.append("present", null);
-			this.choiceGroup_people.append("not present", null);
-			this.myForm.append(this.choiceGroup_people);
-
-			this.strRadio = "NA";
-			this.choiceGroup_radio = new ChoiceGroup("Radio Noise",
-					ChoiceGroup.POPUP);
-			this.choiceGroup_radio.append("NA", null);
-			this.choiceGroup_radio.append("present", null);
-			this.choiceGroup_radio.append("not present", null);
-			this.myForm.append(this.choiceGroup_radio);
-
-			this.strRoadType = "NA";
-			this.choiceGroup_roadType = new ChoiceGroup("Road Type",
-					ChoiceGroup.POPUP);
-			this.choiceGroup_roadType.append("NA", null);
-			this.choiceGroup_roadType.append("Freeway", null);
-			this.choiceGroup_roadType.append("Surface", null);
-			this.choiceGroup_roadType.append("Dirt", null);
-			this.choiceGroup_roadType.append("Parking Lot", null);
-			this.choiceGroup_roadType.append("Parking Garage", null);
-			this.choiceGroup_roadType.append("Airport", null);
-			this.choiceGroup_roadType.append("Disneyland", null);
-			this.myForm.append(this.choiceGroup_roadType);
+			// Traffic Gauges
+			// this.intTrafficDensity = 0;
+			// this.textField_trafficDensity = new TextField("Traffic Density",
+			// "0", 3, TextField.NUMERIC);
+			// this.myForm.append(this.textField_trafficDensity);
+			//
+			// this.intProximityToTraffic = 0;
+			// this.textField_proximityToTraffic = new TextField(
+			// "Traffic Proximity", "0", 3, TextField.NUMERIC);
+			// this.myForm.append(this.textField_proximityToTraffic);
+			//
+			// this.intTrafficSpeed = 0;
+			// this.textField_trafficSpeed = new TextField("Traffic Speed", "0",
+			// 3, TextField.NUMERIC);
+			// this.myForm.append(this.textField_trafficSpeed);
+			//
+			// this.intTrafficTruckRatio = 0;
+			// this.textField_trafficTruckRatio = new TextField(
+			// "Traffic Truck Ratio", "0", 3, TextField.NUMERIC);
+			// this.myForm.append(this.textField_trafficTruckRatio);
+			//
+			// this.strInOutCar = "NA";
+			// this.choiceGroup_inOutCar = new ChoiceGroup("In/Out Car",
+			// ChoiceGroup.POPUP);
+			// this.choiceGroup_inOutCar.append("NA", null);
+			// this.choiceGroup_inOutCar.append("in", null);
+			// this.choiceGroup_inOutCar.append("out", null);
+			// this.myForm.append(this.choiceGroup_inOutCar);
+			//
+			// this.strPeople = "NA";
+			// this.choiceGroup_people = new ChoiceGroup("People Noise",
+			// ChoiceGroup.POPUP);
+			// this.choiceGroup_people.append("NA", null);
+			// this.choiceGroup_people.append("present", null);
+			// this.choiceGroup_people.append("not present", null);
+			// this.myForm.append(this.choiceGroup_people);
+			//
+			// this.strRadio = "NA";
+			// this.choiceGroup_radio = new ChoiceGroup("Radio Noise",
+			// ChoiceGroup.POPUP);
+			// this.choiceGroup_radio.append("NA", null);
+			// this.choiceGroup_radio.append("present", null);
+			// this.choiceGroup_radio.append("not present", null);
+			// this.myForm.append(this.choiceGroup_radio);
+			//
+			// this.strRoadType = "NA";
+			// this.choiceGroup_roadType = new ChoiceGroup("Road Type",
+			// ChoiceGroup.POPUP);
+			// this.choiceGroup_roadType.append("NA", null);
+			// this.choiceGroup_roadType.append("Freeway", null);
+			// this.choiceGroup_roadType.append("Surface", null);
+			// this.choiceGroup_roadType.append("Dirt", null);
+			// this.choiceGroup_roadType.append("Parking Lot", null);
+			// this.choiceGroup_roadType.append("Parking Garage", null);
+			// this.choiceGroup_roadType.append("Airport", null);
+			// this.choiceGroup_roadType.append("Disneyland", null);
+			// this.myForm.append(this.choiceGroup_roadType);
 
 			// /////////////////////////////////////////////////
 			// UI Canvas (for the sound meter)
@@ -553,31 +573,38 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.userName_strItem)) {
 			String _userName = this.getUserInfoTextField();
 			this.setUserInfoRecord(this.userInfo_rs, _userName);
-		} else if (item.equals(this.textField_trafficDensity)) {
-			this.intTrafficDensity = Integer
-					.parseInt(this.textField_trafficDensity.getString());
-		} else if (item.equals(this.textField_trafficSpeed)) {
-			this.intTrafficSpeed = Integer.parseInt(this.textField_trafficSpeed
-					.getString());
-		} else if (item.equals(this.textField_trafficTruckRatio)) {
-			this.intTrafficTruckRatio = Integer
-					.parseInt(this.textField_trafficTruckRatio.getString());
-		} else if (item.equals(this.textField_proximityToTraffic)) {
-			this.intProximityToTraffic = Integer
-					.parseInt(this.textField_proximityToTraffic.getString());
-		} else if (item.equals(this.choiceGroup_inOutCar)) {
-			int i = this.choiceGroup_inOutCar.getSelectedIndex();
-			this.strInOutCar = this.choiceGroup_inOutCar.getString(i);
-		} else if (item.equals(this.choiceGroup_people)) {
-			int i = this.choiceGroup_people.getSelectedIndex();
-			this.strPeople = this.choiceGroup_people.getString(i);
-		} else if (item.equals(this.choiceGroup_radio)) {
-			int i = this.choiceGroup_radio.getSelectedIndex();
-			this.strRadio = this.choiceGroup_radio.getString(i);
-		} else if (item.equals(this.choiceGroup_roadType)) {
-			int i = this.choiceGroup_roadType.getSelectedIndex();
-			this.strRoadType = this.choiceGroup_radio.getString(i);
+		} else if (item.equals(this.textField_totalLength_ms)) {
+			this.int_totalLength_ms = Integer
+					.parseInt(this.textField_totalLength_ms.getString());
+		} else if (item.equals(this.textField_sharedLength_ms)) {
+			this.int_sharedLength_ms = Integer
+					.parseInt(this.textField_sharedLength_ms.getString());
 		}
+//		} else if (item.equals(this.textField_trafficDensity)) {
+//			this.intTrafficDensity = Integer
+//					.parseInt(this.textField_trafficDensity.getString());
+//		} else if (item.equals(this.textField_trafficSpeed)) {
+//			this.intTrafficSpeed = Integer.parseInt(this.textField_trafficSpeed
+//					.getString());
+//		} else if (item.equals(this.textField_trafficTruckRatio)) {
+//			this.intTrafficTruckRatio = Integer
+//					.parseInt(this.textField_trafficTruckRatio.getString());
+//		} else if (item.equals(this.textField_proximityToTraffic)) {
+//			this.intProximityToTraffic = Integer
+//					.parseInt(this.textField_proximityToTraffic.getString());
+//		} else if (item.equals(this.choiceGroup_inOutCar)) {
+//			int i = this.choiceGroup_inOutCar.getSelectedIndex();
+//			this.strInOutCar = this.choiceGroup_inOutCar.getString(i);
+//		} else if (item.equals(this.choiceGroup_people)) {
+//			int i = this.choiceGroup_people.getSelectedIndex();
+//			this.strPeople = this.choiceGroup_people.getString(i);
+//		} else if (item.equals(this.choiceGroup_radio)) {
+//			int i = this.choiceGroup_radio.getSelectedIndex();
+//			this.strRadio = this.choiceGroup_radio.getString(i);
+//		} else if (item.equals(this.choiceGroup_roadType)) {
+//			int i = this.choiceGroup_roadType.getSelectedIndex();
+//			this.strRoadType = this.choiceGroup_radio.getString(i);
+//		}
 	}
 
 	/**
@@ -656,8 +683,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void playerUpdateMaybeRecordAgain() {
 		if (!this.stopPlayer) {
 			// Set a timer callback.
-			int sleepMS = this.myGaugeTotal.getValue()
-					- this.myGaugeShared.getValue();
+			int sleepMS = this.int_totalLength_ms - this.int_sharedLength_ms;
 			if (sleepMS < 0) {
 				sleepMS = 0;
 			}
@@ -685,11 +711,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			long timeMS = java.util.Calendar.getInstance().getTime().getTime();
 			// This has the side-effect of writing to the recordStore.
 			// CHANGED new SigSeg(this.recordStore, timeMS, this.output);
-			new SigSeg(this.recordStore, timeMS, this.intTrafficDensity,
-					this.intTrafficSpeed, this.intTrafficTruckRatio,
-					this.intProximityToTraffic, this.strInOutCar,
-					this.strPeople, this.strRadio, this.strRoadType,
-					this.output, this.cameraOutput, this.lat, this.lon);
+			new SigSeg(this.recordStore, timeMS, this.output,
+					this.cameraOutput, this.lat, this.lon);
 		}
 	}
 
@@ -735,7 +758,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 		this.cameraPlayer.close();
 		this.vc = null;
-		
+
 		// Get Coordinates
 		Coordinates c = getLocation();
 		if (c != null) {
@@ -751,7 +774,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else {
 			this.alertError("error getting location");
 		}
-		
 
 	}
 
@@ -845,7 +867,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			Location l = this.lp.getLocation(30);
 
 			c = l.getQualifiedCoordinates();
-			
+
 		} catch (LocationException e) {
 			// not able to retrive location information
 			this.alertError("LocationException:" + e.getMessage());

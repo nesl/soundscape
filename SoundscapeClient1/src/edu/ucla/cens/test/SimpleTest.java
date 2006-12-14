@@ -17,7 +17,6 @@ import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
-import javax.microedition.lcdui.Gauge;
 import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.ItemStateListener;
 import javax.microedition.lcdui.StringItem;
@@ -236,12 +235,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Belongs to this.myForm. Gauge controlling the base window size.
 	 */
-	private Gauge myGaugeTotal;
+	//private Gauge myGaugeTotal;
 
 	/**
 	 * Belongs to this.myForm. Gauge controlling the recording window size.
 	 */
-	private Gauge myGaugeShared;
+	//private Gauge myGaugeShared;
 
 	/**
 	 * Belongs to this.myForm. A combo box for recording/stopping/deleting.
@@ -371,11 +370,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Location", null);
 			// this.myForm.append(this.myChoiceGroupActions);
 			// Gauges - Total Window Size | Shared Window Size
-			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
-					100, 100);
-			this.myForm.append(this.myGaugeTotal);
-			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
-					true, 100, 5);
+//			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
+//					100, 100);
+//			this.myForm.append(this.myGaugeTotal);
+//			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
+//					true, 100, 5);
 			// this.myForm.append(this.myGaugeShared);
 			// Add commands.
 			// this.myForm.addCommand(this.showCommand);
@@ -998,7 +997,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			throw (e);
 		}
 		this.myThread = new Thread(new SimpleTestHelper(this,
-				this.myGaugeShared.getValue(), "PAUSE"));
+				this.int_sharedLength_ms, "PAUSE"));
 		this.myThread.start();
 	}
 

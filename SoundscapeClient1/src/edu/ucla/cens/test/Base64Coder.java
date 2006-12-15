@@ -69,6 +69,10 @@ public class Base64Coder {
 	 * @return A character array with the Base64 encoded data.
 	 */
 	public static char[] encode(byte[] in) {
+		if (in == null) {
+			return new char[0];
+		}
+		
 		int iLen = in.length;
 		int oDataLen = (iLen * 4 + 2) / 3; // output length without padding
 		int oLen = ((iLen + 2) / 3) * 4; // output length including padding

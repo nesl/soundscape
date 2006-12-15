@@ -175,7 +175,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private TextField textField_sharedLength_ms;
 
 	private ChoiceGroup choiceGroup_enableMicrophone;
-	
+
+	private boolean bool_microphoneEnabled = false;
+
 	private int int_sharedLength_ms;
 
 	/**
@@ -214,11 +216,18 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * The byte[] representation of the image data captured.
 	 */
+	private ChoiceGroup choiceGroup_enableCamera;
+
+	private boolean bool_cameraEnabled = false;
+
+	private ChoiceGroup choiceGroup_cameraResolution;
+
+	private int cameraWidth = 80;
+
+	private int cameraHeight = 60;
+
 	public byte[] cameraOutput = null;
 
-	/**
-	 * The controller for this.videoPlayer;
-	 */
 	private VideoControl vc = null;
 
 	/** ****************************** */
@@ -226,6 +235,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Latitude and longitude
 	 */
+	private ChoiceGroup choiceGroup_enableLocation;
+
+	private boolean bool_locationEnabled = false;
+
+	//private int locationStatus = LocationProvider.OUT_OF_SERVICE;
+
 	public double lat = 0;
 
 	public double lon = 0;
@@ -242,18 +257,18 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The Form object that contains information about records and EOS.
 	 */
 	public Form myForm;
-	
+
 	/**
 	 * Belongs to this.myForm. A combo box for recording/stopping/deleting.
 	 */
 	private ChoiceGroup myChoiceGroupActions;
-	
+
 	/**
 	 * Belongs to this.myForm. A text box that shows some stats on the number of
 	 * recordings made and kept.
 	 */
 	private StringItem strItem_recordsQueued;
-	
+
 	/**
 	 * Belongs to this.myForm. A text box that shows the user name.
 	 */
@@ -265,7 +280,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * The Canvas object that draws the graph.
 	 */
 	public HelloCanvas myCanvas;
-
 
 	/** ************************************** */
 	// UI Form: Upload
@@ -341,19 +355,42 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.setItemStateListener(this);
 
 			this.int_totalLength_ms = 0;
-			this.textField_totalLength_ms = new TextField("Total Period (ms)",
+			this.textField_totalLength_ms = new TextField("Repeat every (ms)",
 					"0", 3, TextField.NUMERIC);
 			this.myForm.append(this.textField_totalLength_ms);
 
-			/*********************************/
+			/** ******************************* */
+			// Location
+			this.choiceGroup_enableLocation = new ChoiceGroup("GPS:",
+					Choice.MULTIPLE);
+			this.choiceGroup_enableLocation.append("Enable", null);
+			this.myForm.append(this.choiceGroup_enableLocation);
+
+			/** ****************************** */
 			// Acoustic
-			this.choiceGroup_enableMicrophone = new ChoiceGroup("Microphone:", Choice.MULTIPLE);
+			this.choiceGroup_enableMicrophone = new ChoiceGroup("Microphone:",
+					Choice.MULTIPLE);
+			this.choiceGroup_enableMicrophone.append("Enable", null);
 			this.myForm.append(this.choiceGroup_enableMicrophone);
 			this.int_sharedLength_ms = 0;
-			this.textField_sharedLength_ms = new TextField("Shared Period(ms)",
+			this.textField_sharedLength_ms = new TextField("Record for (ms)",
 					"0", 3, TextField.NUMERIC);
 			this.myForm.append(this.textField_sharedLength_ms);
 
+			/** ****************************** */
+			// Camera
+			this.choiceGroup_enableCamera = new ChoiceGroup("Camera:",
+					Choice.MULTIPLE);
+			this.choiceGroup_enableCamera.append("Enable", null);
+			this.myForm.append(this.choiceGroup_enableCamera);
+
+			this.choiceGroup_cameraResolution = new ChoiceGroup("Picture Size",
+					Choice.POPUP);
+			this.choiceGroup_cameraResolution.append("80x60", null);
+			this.choiceGroup_cameraResolution.append("160x120", null);
+			this.choiceGroup_cameraResolution.append("320x240", null);
+			this.choiceGroup_cameraResolution.append("640x480", null);
+			this.myForm.append(this.choiceGroup_cameraResolution);
 
 			// /////////////////////////////////////////////////
 			// UI Canvas (for the sound meter)
@@ -375,6 +412,26 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	}
 
+	// requires that user record exists, otherwise returns "Default"
+	private String getUserInfoRecord(RecordStore userInfo) {
+		RecordEnumeration rs_enum = null;
+		byte[] recData_ba = null;
+		String recData_str = new String("Default");
+
+		try {
+			rs_enum = userInfo.enumerateRecords(null, null, true);
+			recData_ba = rs_enum.nextRecord();
+			recData_str = new String(recData_ba);
+		} catch (RecordStoreNotOpenException e) {
+			e.printStackTrace();
+		} catch (InvalidRecordIDException e) {
+			e.printStackTrace();
+		} catch (RecordStoreException e) {
+			e.printStackTrace();
+		}
+		return recData_str;
+	}
+
 	/**
 	 * 
 	 */
@@ -391,22 +448,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} catch (IllegalArgumentException e) {
 			this.alertError("Hi IllegalArg: " + e.getMessage());
 			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Creates an alert message on the phone.
-	 * 
-	 * @param message
-	 *            The message to display.
-	 */
-	public void alertError(String message) {
-		Alert alert = new Alert("Error", message, null, AlertType.ERROR);
-		Display display = Display.getDisplay(this);
-		Displayable current = display.getCurrent();
-		if (!(current instanceof Alert)) {
-			// This next call can't be done when current is an Alert
-			display.setCurrent(alert, current);
 		}
 	}
 
@@ -435,26 +476,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
-	 * Skip the first 44 bytes of the (WAV header), Loop through every byte-pair
-	 * (Short) in this.output. For each Short, accumulate the sum of val^2.
-	 * Return sum/(this.output.length/2).
-	 * 
-	 * @return The noise level.
-	 */
-	public double getNoiseLevel() {
-		long sum = 0;
-		try {
-			for (int i = 44; i < this.output.length; i += 2) {
-				short val = SimpleTest.byteArrayToShort(this.output, i);
-				sum += val * val;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return (2.0 * sum) / this.output.length;
-	}
-
-	/**
 	 * Callback for ChoiceGroup when it has a state change.
 	 * 
 	 * @see javax.microedition.lcdui.ItemStateListener#itemStateChanged(javax.microedition.lcdui.Item)
@@ -471,207 +492,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.textField_sharedLength_ms)) {
 			this.int_sharedLength_ms = Integer
 					.parseInt(this.textField_sharedLength_ms.getString());
+		} else if (item.equals(this.choiceGroup_enableLocation)) {
+			this.choiceGroup_enableLocation_changed();
+		} else if (item.equals(this.choiceGroup_enableMicrophone)) {
+			this.choiceGroup_enableMicrophone_changed();
+		} else if (item.equals(this.choiceGroup_enableCamera)) {
+			this.choiceGroup_enableCamera_changed();
+		} else if (item.equals(this.choiceGroup_cameraResolution)) {
+			this.choiceGroup_cameraResolution_changed();
 		}
-	}
-
-	/**
-	 * This UNUSED function is an example of how to playback an audio file.
-	 */
-	public void playCallback() {
-		String SNDFILE = "file:///E:/audio.wav";
-		FileConnection fconn = null;
-		InputStream inStream = null;
-		Player p = null;
-		fconn = this.createFC(SNDFILE, false);
-		if (fconn == null) {
-			this.alertError("fconn was null");
-			return;
-		}
-		try {
-			inStream = fconn.openDataInputStream();
-		} catch (IOException e) {
-			this
-					.alertError("Can't open input stream for:" + SNDFILE + "/n"
-							+ e);
-			return;
-		}
-		try {
-			// create a datasource that captures live audio
-			p = Manager.createPlayer(inStream, "audio/X-wav");
-			p.start();
-		} catch (IOException e) {
-			this.alertError("IOException in createPlayer:" + e.getMessage());
-		} catch (MediaException e) {
-			this.alertError("MediaException in createPlayer:" + e.getMessage());
-		}
-	}
-
-	/**
-	 * Callback for PlayerListener.
-	 * 
-	 * @see javax.microedition.media.PlayerListener#playerUpdate(javax.microedition.media.Player,
-	 *      java.lang.String, java.lang.Object)
-	 */
-	public void playerUpdate(Player p, String event, Object eventData) {
-		try {
-			if (event.compareTo("PAUSE") == 0) {
-				playerUpdatePause();
-			} else if (event.compareTo("START") == 0) {
-				recordCallback3();
-			}
-		} catch (Exception e) {
-			this.alertError("Exception in handing event:" + event + ":"
-					+ e.getMessage());
-		}
-	}
-
-	/**
-	 * Helper function for playerUpdate, dispatched to if the event is "PAUSE".
-	 * 
-	 * @throws IOException
-	 * @throws RecordStoreNotOpenException
-	 * @throws RecordStoreException
-	 * @throws RecordStoreFullException
-	 */
-	private void playerUpdatePause() throws IOException,
-			RecordStoreNotOpenException, RecordStoreException,
-			RecordStoreFullException {
-		++this.samplesTaken;
-		playerUpdateCommitAndClose();
-		double noiseLevel = this.getNoiseLevel();
-		playerUpdateCanvas(noiseLevel);
-		playerUpdateFilter(noiseLevel);
-		playerUpdateMaybeRecordAgain();
-	}
-
-	/**
-	 * If the stopPlayer flag is not set, then set another time to record again.
-	 */
-	private void playerUpdateMaybeRecordAgain() {
-		if (!this.stopPlayer) {
-			// Set a timer callback.
-			int sleepMS = this.int_totalLength_ms - this.int_sharedLength_ms;
-			if (sleepMS < 0) {
-				sleepMS = 0;
-			}
-			this.myThread = new Thread(new SimpleTestHelper(this, sleepMS,
-					"START"));
-			this.myThread.start();
-		}
-	}
-
-	/**
-	 * Based on the noiseLevel, decide to save or drop the sample.
-	 * 
-	 * @param noiseLevel
-	 * @throws RecordStoreNotOpenException
-	 * @throws RecordStoreException
-	 * @throws RecordStoreFullException
-	 * @throws IOException
-	 */
-	private void playerUpdateFilter(double noiseLevel)
-			throws RecordStoreNotOpenException, RecordStoreException,
-			RecordStoreFullException, IOException {
-		// If the noiseLevel is above the threshold (myCanvas.ave),
-		// then save this.output to this.recordStore.
-		if (noiseLevel > this.myCanvas.ave) {
-			long timeMS = java.util.Calendar.getInstance().getTime().getTime();
-			// This has the side-effect of writing to the recordStore.
-			// CHANGED new SigSeg(this.recordStore, timeMS, this.output);
-			new SigSeg(this.recordStore, timeMS, this.output,
-					this.cameraOutput, this.lat, this.lon);
-		}
-	}
-
-	/**
-	 * Given a noiseLevel, update the canvas-relate state and repaint.
-	 * 
-	 * @param noiseLevel
-	 */
-	private void playerUpdateCanvas(double noiseLevel) {
-		if (this.power.size() >= 30) {
-			this.power.removeElementAt(0);
-		}
-		this.power.addElement(new Double(noiseLevel));
-		this.myCanvas.repaint();
-	}
-
-	/**
-	 * Commit and close the player.
-	 * 
-	 * @throws IOException
-	 */
-	private void playerUpdateCommitAndClose() throws IOException {
-		// Close down the recorder.
-		this.rc.commit();
-		this.audioPlayer.close();
-		this.output = this.tempoutput.toByteArray();
-		this.tempoutput.close();
-
-		// Close the camera.
-		try {
-			this.cameraOutput = this.vc
-					.getSnapshot("encoding=png&width=80&height=60");
-		} catch (MediaException e) {
-			this.alertError("MediaException getSnapshot: " + e.getMessage());
-			this.cameraOutput = null;
-		} catch (IllegalStateException e) {
-			this.alertError("IllegalStateException getSnapshot: "
-					+ e.getMessage());
-			this.cameraOutput = null;
-		} catch (SecurityException e) {
-			this.alertError("SecurityException getSnapshot: " + e.getMessage());
-			this.cameraOutput = null;
-		}
-		this.cameraPlayer.close();
-		this.vc = null;
-
-		// Get Coordinates
-		Coordinates c = getCoordinates();
-		if (c != null) {
-			this.lat = c.getLatitude();
-			this.lon = c.getLongitude();
-		} else {
-			this.lat = 0;
-			this.lon = 0;
-		}
-		if (c != null) {
-			this.alertError("lat:" + c.getLatitude() + "\nlon:"
-					+ c.getLongitude());
-		} else {
-			this.alertError("error getting location");
-		}
-
-	}
-
-	/**
-	 * Callback for RecordStore. It updates the text box with new stats.
-	 * 
-	 * @see javax.microedition.rms.RecordListener#recordAdded(javax.microedition.rms.RecordStore,
-	 *      int)
-	 */
-	public void recordAdded(RecordStore recordStore, int recordID) {
-		this.updateStringItem(recordStore, recordID);
-	}
-
-	/**
-	 * Callback for RecordStore
-	 * 
-	 * @see javax.microedition.rms.RecordListener#recordChanged(javax.microedition.rms.RecordStore,
-	 *      int)
-	 */
-	public void recordChanged(RecordStore recordStore, int recordID) {
-		return;
-	}
-
-	/**
-	 * Callback for RecordStore
-	 * 
-	 * @see javax.microedition.rms.RecordListener#recordDeleted(javax.microedition.rms.RecordStore,
-	 *      int)
-	 */
-	public void recordDeleted(RecordStore recordStore, int recordID) {
-		this.updateStringItem(recordStore, recordID);
 	}
 
 	/**
@@ -682,7 +511,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
 		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
 		if (selectedStr.equals("Record")) {
-			recordCallback3();
+			playerRecord();
 		} else if (selectedStr.equals("Stop")) {
 			this.stopPlayer = true;
 			this.playerUpdate(null, "PAUSE", null);
@@ -713,72 +542,95 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-	/**
-	 * 
-	 */
-	private Coordinates getCoordinates() {
-		try {
-			if (this.lp == null) {
-				Criteria cr = new Criteria();
-				cr.setHorizontalAccuracy(500);
-				this.lp = LocationProvider.getInstance(cr);
-
-			}
-			this.location = this.lp.getLocation(30);
-			this.coordinates = this.location.getQualifiedCoordinates();
-			return this.coordinates;
-		} catch (LocationException e) {
-			this.alertError("LocationException:" + e.getMessage());
-			return null;
-		} catch (InterruptedException e) {
-			this.alertError("location InterruptedException" + e.getMessage());
-			return null;
-		}
+	private String getUserInfoTextField() {
+		return this.strItem_userName.getString();
 	}
 
-	/**
-	 * All this code is to create a FileConnection. :P
-	 * 
-	 * @param arg
-	 *            The name of the file to open.
-	 * @param write
-	 *            A boolean that indicates whether or not to open the file for
-	 *            writing.
-	 * @return A FileConnection object tied to the specified file.
-	 */
-	private FileConnection createFC(String arg, boolean write) {
-		FileConnection fconn = null;
+	// If user record exists, it'll update it.
+	// If user record doesn't exist, it'll add one.
+	private void setUserInfoRecord(RecordStore userInfo, String data) {
+		RecordEnumeration rs_enum = null;
+		byte[] ba = data.getBytes();
+		int recID = -1;
 		try {
-			fconn = (FileConnection) Connector.open(arg);
-		} catch (IOException e) {
-			this.alertError("Can't open file (bad URL):" + arg + "/n" + e);
-			return null;
-		}
-		if (write) {
-			if (fconn.exists()) {
-				if (!fconn.canWrite()) {
-					this.alertError("Can't write to existing file:" + arg);
-				}
+			if (userInfo.getNumRecords() == 0) {
+				userInfo.addRecord(ba, 0, ba.length);
 			} else {
-				try {
-					fconn.create();
-				} catch (IOException e) {
-					this.alertError("Can't create file:" + arg + "/n"
-							+ e.getMessage());
-					return null;
-				}
+				rs_enum = this.userInfo_rs.enumerateRecords(null, null, true);
+				recID = rs_enum.nextRecordId();
+				userInfo.setRecord(recID, ba, 0, ba.length);
 			}
+		} catch (RecordStoreNotOpenException e) {
+			e.printStackTrace();
+		} catch (RecordStoreFullException e) {
+			e.printStackTrace();
+		} catch (InvalidRecordIDException e) {
+			e.printStackTrace();
+		} catch (RecordStoreException e) {
+			e.printStackTrace();
 		}
-		return fconn;
+	}
+
+	private void choiceGroup_enableLocation_changed() {
+		this.bool_locationEnabled = this.choiceGroup_enableLocation
+				.isSelected(0);
+	}
+
+	private void choiceGroup_enableCamera_changed() {
+		this.bool_cameraEnabled = this.choiceGroup_enableCamera.isSelected(0);
+	}
+
+	private void choiceGroup_enableMicrophone_changed() {
+		// Check "enable" option
+		this.bool_microphoneEnabled = this.choiceGroup_enableMicrophone
+				.isSelected(0);
+	}
+
+	private void choiceGroup_cameraResolution_changed() {
+		switch (this.choiceGroup_cameraResolution.getSelectedIndex()) {
+		case 3:
+			this.cameraWidth = 640;
+			this.cameraHeight = 480;
+		case 2:
+			this.cameraWidth = 320;
+			this.cameraHeight = 240;
+		case 1:
+			this.cameraWidth = 160;
+			this.cameraHeight = 120;
+		case 0:
+		default:
+			this.cameraWidth = 80;
+			this.cameraHeight = 60;
+			break;
+		}
+	}
+
+	/**
+	 * Callback for PlayerListener.
+	 * 
+	 * @see javax.microedition.media.PlayerListener#playerUpdate(javax.microedition.media.Player,
+	 *      java.lang.String, java.lang.Object)
+	 */
+	public void playerUpdate(Player p, String event, Object eventData) {
+		try {
+			if (event.compareTo("PAUSE") == 0) {
+				playerUpdatePause();
+			} else if (event.compareTo("START") == 0) {
+				playerRecord();
+			}
+		} catch (Exception e) {
+			this.alertError("Exception in handing event:" + event + ":"
+					+ e.getMessage());
+		}
 	}
 
 	/**
 	 * 
 	 */
-	private void recordCallback3() {
+	private void playerRecord() {
 		while (true) {
 			try {
-				this.recordCallback2();
+				this.playerRecordHelper();
 				break;
 			} catch (MediaException e) {
 				try {
@@ -816,48 +668,313 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @throws MediaException
 	 * @throws IOException
 	 */
-	private void recordCallback2() throws MediaException, IOException {
+	private void playerRecordHelper() throws MediaException, IOException {
+		if (this.int_totalLength_ms < 0) {
+			this.int_totalLength_ms = 10000;
+		}
+		if (this.int_sharedLength_ms < 0) {
+			this.int_sharedLength_ms = 0;
+		} else if (this.int_sharedLength_ms >= this.int_totalLength_ms) {
+			this.int_sharedLength_ms = this.int_totalLength_ms;
+		}
+
+		if (this.bool_locationEnabled) {
+			playerRecordSetupLocation();
+		}
+		if (this.bool_microphoneEnabled) {
+			playerRecordSetupAudio();
+		}
+		if (this.bool_cameraEnabled) {
+			playerRecordSetupVideo();
+		}
+		this.myThread = new Thread(new SimpleTestHelper(this,
+				this.int_sharedLength_ms, "PAUSE"));
+		this.myThread.start();
+	}
+
+	private void playerRecordSetupLocation() {
+		try {
+			if (this.lp == null) {
+				Criteria cr = new Criteria();
+				cr.setHorizontalAccuracy(500);
+				this.lp = LocationProvider.getInstance(cr);
+				this.lp.setLocationListener(this, -1, -1, -1);
+			}
+		} catch (LocationException e) {
+			this.alertError("LocationException:" + e.getMessage());
+		}
+	}
+
+	private void playerRecordSetupVideo() {
+		try {
+			this.cameraPlayer = Manager.createPlayer("capture://video");
+		} catch (MediaException me) {
+			this
+					.alertError("MediaException playerRecordSetupVideo createPlayer():"
+							+ me.getMessage());
+			return;
+		} catch (IOException ioe) {
+			this
+					.alertError("IOException in playerRecordSetupVideo createPlayer():"
+							+ ioe.getMessage());
+			return;
+		}
+		try {
+			this.cameraPlayer.realize();
+		} catch (MediaException e1) {
+			this.alertError("MediaException recordCallback2 realize():"
+					+ e1.getMessage());
+			return;
+		}
+		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
+		this.vc.initDisplayMode(VideoControl.USE_GUI_PRIMITIVE, null);
+		try {
+			this.cameraPlayer.start();
+		} catch (MediaException e) {
+			this.alertError("MediaException in recordCallback2 this.p.start:");
+			return;
+		}
+	}
+
+	private void playerRecordSetupAudio() {
 		this.stopPlayer = false;
 		this.tempoutput = new ByteArrayOutputStream();
 		try {
 			this.audioPlayer = Manager
 					.createPlayer("capture://audio?encoding=pcm");
-			this.cameraPlayer = Manager.createPlayer("capture://video");
 		} catch (MediaException me) {
-			this.alertError("MediaException recordCallback2 createPlayer():"
-					+ me.getMessage());
-			throw (me);
-
+			this
+					.alertError("MediaException playerRecordSetupAudio createPlayer():"
+							+ me.getMessage());
+			return;
 		} catch (IOException ioe) {
-			this.alertError("IOException in recordCallback2 createPlayer():"
-					+ ioe.getMessage());
-			throw (ioe);
+			this
+					.alertError("IOException in playerRecordSetupAudio createPlayer():"
+							+ ioe.getMessage());
+			return;
 		}
 		try {
 			this.audioPlayer.realize();
-			this.cameraPlayer.realize();
 		} catch (MediaException e1) {
-			this.alertError("MediaException recordCallback2 realize():"
+			this.alertError("MediaException playerRecordSetupAudio realize():"
 					+ e1.getMessage());
-			throw (e1);
+			return;
 		}
 		this.audioPlayer.addPlayerListener(this);
-
 		this.rc = (RecordControl) this.audioPlayer.getControl("RecordControl");
-		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
-		this.vc.initDisplayMode(VideoControl.USE_GUI_PRIMITIVE, null);
 		this.rc.setRecordStream(this.tempoutput);
 		this.rc.startRecord();
 		try {
 			this.audioPlayer.start();
-			this.cameraPlayer.start();
 		} catch (MediaException e) {
-			this.alertError("MediaException in recordCallback2 this.p.start:");
-			throw (e);
+			this
+					.alertError("MediaException in playerRecordSetupAudio this.p.start:");
+			return;
 		}
-		this.myThread = new Thread(new SimpleTestHelper(this,
-				this.int_sharedLength_ms, "PAUSE"));
-		this.myThread.start();
+	}
+
+	/**
+	 * Helper function for playerUpdate, dispatched to if the event is "PAUSE".
+	 * 
+	 * @throws IOException
+	 * @throws RecordStoreNotOpenException
+	 * @throws RecordStoreException
+	 * @throws RecordStoreFullException
+	 */
+	private void playerUpdatePause() throws IOException,
+			RecordStoreNotOpenException, RecordStoreException,
+			RecordStoreFullException {
+		++this.samplesTaken;
+		this.playerUpdateCommitAndClose();
+		double noiseLevel = this.getNoiseLevel();
+		playerUpdateCanvas(noiseLevel);
+		playerUpdateStore();
+		playerUpdateReset();
+		playerUpdateMaybeRecordAgain();
+	}
+
+	/**
+	 * Skip the first 44 bytes of the (WAV header), Loop through every byte-pair
+	 * (Short) in this.output. For each Short, accumulate the sum of val^2.
+	 * Return sum/(this.output.length/2).
+	 * 
+	 * @return The noise level.
+	 */
+	private double getNoiseLevel() {
+		long sum = 0;
+		try {
+			for (int i = 44; i < this.output.length; i += 2) {
+				short val = SimpleTest.byteArrayToShort(this.output, i);
+				sum += val * val;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return (2.0 * sum) / this.output.length;
+	}
+
+	/**
+	 * Given a noiseLevel, update the canvas-relate state and repaint.
+	 * 
+	 * @param noiseLevel
+	 */
+	private void playerUpdateCanvas(double noiseLevel) {
+		if (this.power.size() >= 30) {
+			this.power.removeElementAt(0);
+		}
+		this.power.addElement(new Double(noiseLevel));
+		this.myCanvas.repaint();
+	}
+
+	/**
+	 * Based on the noiseLevel, decide to save or drop the sample.
+	 * 
+	 * @param noiseLevel
+	 * @throws RecordStoreNotOpenException
+	 * @throws RecordStoreException
+	 * @throws RecordStoreFullException
+	 * @throws IOException
+	 */
+	private void playerUpdateStore() throws RecordStoreNotOpenException,
+			RecordStoreException, RecordStoreFullException, IOException {
+		long timeMS = java.util.Calendar.getInstance().getTime().getTime();
+		new SigSeg(this.recordStore, timeMS, this.output, this.cameraOutput,
+				this.lat, this.lon);
+		
+
+	}
+
+	private void playerUpdateReset() {
+		this.output = null;
+		this.cameraOutput = null;
+		this.lat = 0;
+		this.lon = 0;
+	}
+	
+	/**
+	 * If the stopPlayer flag is not set, then set another time to record again.
+	 */
+	private void playerUpdateMaybeRecordAgain() {
+		if (!this.stopPlayer) {
+			// Set a timer callback.
+			int sleepMS = this.int_totalLength_ms - this.int_sharedLength_ms;
+			if (sleepMS < 0) {
+				sleepMS = 0;
+			}
+			this.myThread = new Thread(new SimpleTestHelper(this, sleepMS,
+					"START"));
+			this.myThread.start();
+		}
+	}
+
+	/**
+	 * Commit and close the player.
+	 * 
+	 * @throws IOException
+	 */
+	private void playerUpdateCommitAndClose() throws IOException {
+		if (this.rc != null) {
+			try {
+				this.playerUpdateCommitAndCloseAudio();
+			} catch (IOException e) {
+			}
+			this.rc = null;
+			this.audioPlayer = null;
+			this.tempoutput = null;
+		}
+		if (this.vc != null) {
+			try {
+				playerUpdateCommitAndCloseVideo();
+			} catch (IOException e) {
+			}
+			this.cameraPlayer = null;
+			this.vc = null;
+		}
+
+	}
+
+	private void playerUpdateCommitAndCloseAudio() throws IOException {
+		// Close down the recorder.
+		this.rc.commit();
+		this.audioPlayer.close();
+		this.output = this.tempoutput.toByteArray();
+		this.tempoutput.close();
+	}
+
+	private void playerUpdateCommitAndCloseVideo() throws IOException {
+		// Close the camera.
+		try {
+			String arg = new String("encoding=png&width=");
+			arg += String.valueOf(this.cameraWidth) + new String("&height=")
+					+ String.valueOf(this.cameraHeight);
+			this.cameraOutput = this.vc.getSnapshot(arg);
+		} catch (MediaException e) {
+			this.alertError("MediaException getSnapshot: " + e.getMessage());
+			this.cameraOutput = null;
+		} catch (IllegalStateException e) {
+			this.alertError("IllegalStateException getSnapshot: "
+					+ e.getMessage());
+			this.cameraOutput = null;
+		} catch (SecurityException e) {
+			this.alertError("SecurityException getSnapshot: " + e.getMessage());
+			this.cameraOutput = null;
+		}
+		this.cameraPlayer.close();
+		this.vc = null;
+
+	}
+
+	/**
+	 * 
+	 */
+	private Coordinates getCoordinates() {
+		try {
+			if (this.lp == null) {
+				Criteria cr = new Criteria();
+				cr.setHorizontalAccuracy(500);
+				this.lp = LocationProvider.getInstance(cr);
+
+			}
+			this.location = this.lp.getLocation(30);
+			this.coordinates = this.location.getQualifiedCoordinates();
+			return this.coordinates;
+		} catch (LocationException e) {
+			this.alertError("LocationException:" + e.getMessage());
+			return null;
+		} catch (InterruptedException e) {
+			this.alertError("location InterruptedException" + e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Callback for RecordStore. It updates the text box with new stats.
+	 * 
+	 * @see javax.microedition.rms.RecordListener#recordAdded(javax.microedition.rms.RecordStore,
+	 *      int)
+	 */
+	public void recordAdded(RecordStore recordStore, int recordID) {
+		this.updateStringItem(recordStore, recordID);
+	}
+
+	/**
+	 * Callback for RecordStore
+	 * 
+	 * @see javax.microedition.rms.RecordListener#recordChanged(javax.microedition.rms.RecordStore,
+	 *      int)
+	 */
+	public void recordChanged(RecordStore recordStore, int recordID) {
+		return;
+	}
+
+	/**
+	 * Callback for RecordStore
+	 * 
+	 * @see javax.microedition.rms.RecordListener#recordDeleted(javax.microedition.rms.RecordStore,
+	 *      int)
+	 */
+	public void recordDeleted(RecordStore recordStore, int recordID) {
+		this.updateStringItem(recordStore, recordID);
 	}
 
 	/**
@@ -879,61 +996,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		return;
 	}
 
-	// If user record exists, it'll update it.
-	// If user record doesn't exist, it'll add one.
-	private void setUserInfoRecord(RecordStore userInfo, String data) {
-		RecordEnumeration rs_enum = null;
-		byte[] ba = data.getBytes();
-		int recID = -1;
-		try {
-			if (userInfo.getNumRecords() == 0) {
-				userInfo.addRecord(ba, 0, ba.length);
-			} else {
-				rs_enum = this.userInfo_rs.enumerateRecords(null, null, true);
-				recID = rs_enum.nextRecordId();
-				userInfo.setRecord(recID, ba, 0, ba.length);
-			}
-		} catch (RecordStoreNotOpenException e) {
-			e.printStackTrace();
-		} catch (RecordStoreFullException e) {
-			e.printStackTrace();
-		} catch (InvalidRecordIDException e) {
-			e.printStackTrace();
-		} catch (RecordStoreException e) {
-			e.printStackTrace();
-		}
-	}
-
-	// requires that user record exists, otherwise returns "Default"
-	private String getUserInfoRecord(RecordStore userInfo) {
-		RecordEnumeration rs_enum = null;
-		byte[] recData_ba = null;
-		String recData_str = new String("Default");
-
-		try {
-			rs_enum = userInfo.enumerateRecords(null, null, true);
-			recData_ba = rs_enum.nextRecord();
-			recData_str = new String(recData_ba);
-		} catch (RecordStoreNotOpenException e) {
-			e.printStackTrace();
-		} catch (InvalidRecordIDException e) {
-			e.printStackTrace();
-		} catch (RecordStoreException e) {
-			e.printStackTrace();
-		}
-		return recData_str;
-	}
-
-	private String getUserInfoTextField() {
-		return this.strItem_userName.getString();
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see javax.microedition.midlet.MIDlet#destroyApp(boolean)
 	 */
 	protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
+		if (this.lp != null) {
+			this.lp.reset();
+		}
 	}
 
 	/*
@@ -953,14 +1024,42 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		Display.getDisplay(this).setCurrent(this.myForm);
 	}
 
-	public void locationUpdated(LocationProvider arg0, Location arg1) {
-		// TODO Auto-generated method stub
-
+	public void locationUpdated(LocationProvider lp, Location loc) {
+		// Get Coordinates
+		Coordinates c = null;
+		if (loc.isValid()) {
+			c = loc.getQualifiedCoordinates();
+		}
+		if (c != null) {
+			this.lat = c.getLatitude();
+			this.lon = c.getLongitude();
+		} else {
+			this.lat = 0;
+			this.lon = 0;
+		}
 	}
 
-	public void providerStateChanged(LocationProvider arg0, int arg1) {
-		// TODO Auto-generated method stub
+	public void providerStateChanged(LocationProvider lp, int lp_status) {
+		if (lp_status == LocationProvider.OUT_OF_SERVICE) {
+			this.lp.reset();
+			this.lp = null;
+		}
+	}
 
+	/**
+	 * Creates an alert message on the phone.
+	 * 
+	 * @param message
+	 *            The message to display.
+	 */
+	public void alertError(String message) {
+		Alert alert = new Alert("Error", message, null, AlertType.ERROR);
+		Display display = Display.getDisplay(this);
+		Displayable current = display.getCurrent();
+		if (!(current instanceof Alert)) {
+			// This next call can't be done when current is an Alert
+			display.setCurrent(alert, current);
+		}
 	}
 
 	/**
@@ -971,5 +1070,73 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public static boolean isLocationApiSupported() {
 		String version = System.getProperty("microedition.location.version");
 		return (version != null && !version.equals("")) ? true : false;
+	}
+
+	/**
+	 * This UNUSED function is an example of how to playback an audio file.
+	 */
+	public void playCallback() {
+		String SNDFILE = "file:///E:/audio.wav";
+		FileConnection fconn = null;
+		InputStream inStream = null;
+		Player p = null;
+		fconn = this.createFC(SNDFILE, false);
+		if (fconn == null) {
+			this.alertError("fconn was null");
+			return;
+		}
+		try {
+			inStream = fconn.openDataInputStream();
+		} catch (IOException e) {
+			this
+					.alertError("Can't open input stream for:" + SNDFILE + "/n"
+							+ e);
+			return;
+		}
+		try {
+			// create a datasource that captures live audio
+			p = Manager.createPlayer(inStream, "audio/X-wav");
+			p.start();
+		} catch (IOException e) {
+			this.alertError("IOException in createPlayer:" + e.getMessage());
+		} catch (MediaException e) {
+			this.alertError("MediaException in createPlayer:" + e.getMessage());
+		}
+	}
+
+	/**
+	 * All this code is to create a FileConnection. :P
+	 * 
+	 * @param arg
+	 *            The name of the file to open.
+	 * @param write
+	 *            A boolean that indicates whether or not to open the file for
+	 *            writing.
+	 * @return A FileConnection object tied to the specified file.
+	 */
+	private FileConnection createFC(String arg, boolean write) {
+		FileConnection fconn = null;
+		try {
+			fconn = (FileConnection) Connector.open(arg);
+		} catch (IOException e) {
+			this.alertError("Can't open file (bad URL):" + arg + "/n" + e);
+			return null;
+		}
+		if (write) {
+			if (fconn.exists()) {
+				if (!fconn.canWrite()) {
+					this.alertError("Can't write to existing file:" + arg);
+				}
+			} else {
+				try {
+					fconn.create();
+				} catch (IOException e) {
+					this.alertError("Can't create file:" + arg + "/n"
+							+ e.getMessage());
+					return null;
+				}
+			}
+		}
+		return fconn;
 	}
 }

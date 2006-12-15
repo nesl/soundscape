@@ -44,7 +44,7 @@ import javax.microedition.location.*;
  * 
  */
 public class SimpleTest extends MIDlet implements CommandListener,
-		PlayerListener, ItemStateListener, RecordListener /* ,LocationListener */{
+		PlayerListener, ItemStateListener, RecordListener, LocationListener /* ,LocationListener */{
 
 	private class SimpleTestHelper implements Runnable {
 		/**
@@ -136,34 +136,25 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		return value;
 	}
 
-	// //////////////////////////
-	// Acoustic Data
+	/** ***************************** */
+	// Control
+	/**
+	 * The thread that implements the timer callback.
+	 */
+	private Thread myThread = null;
 
 	/**
-	 * The byte[] representation of the acoustic data recorded.
+	 * A flag that tells this whether or not stop the player, or to start the
+	 * player.
 	 */
-	public byte[] output = null;
+	private boolean stopPlayer = true;
 
-	/**
-	 * The byte[] representation of the image data captured.
-	 */
-	public byte[] cameraOutput = null;
+	private TextField textField_totalLength_ms;
 
-	/**
-	 * Latitude and longitude
-	 */
-	public double lat = 0;
+	private int int_totalLength_ms;
 
-	public double lon = 0;
-
-	public LocationProvider lp = null;
-
-	/**
-	 * A vector containing power levels of the last several acoustic readings,
-	 * in order from oldest to most recent.
-	 */
-	public Vector power = new Vector();
-
+	/** ******************************** */
+	// Persistent Store
 	/**
 	 * This is the storage used by this object's SigSeg.
 	 */
@@ -179,13 +170,24 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public int samplesTaken = 0;
 
-	// /////////////////////////
-	// Recording
+	/** ********************************** */
+	// Acoustic Data
+	private TextField textField_sharedLength_ms;
+
+	private ChoiceGroup choiceGroup_enableMicrophone;
+	
+	private int int_sharedLength_ms;
 
 	/**
-	 * The thread that implements the timer callback.
+	 * The byte[] representation of the acoustic data recorded.
 	 */
-	private Thread myThread = null;
+	public byte[] output = null;
+
+	/**
+	 * A vector containing power levels of the last several acoustic readings,
+	 * in order from oldest to most recent.
+	 */
+	public Vector power = new Vector();
 
 	/**
 	 * The player for the Recording.
@@ -207,66 +209,70 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private RecordControl rc = null;
 
+	/** ****************************** */
+	// Camera Data
+	/**
+	 * The byte[] representation of the image data captured.
+	 */
+	public byte[] cameraOutput = null;
+
 	/**
 	 * The controller for this.videoPlayer;
 	 */
 	private VideoControl vc = null;
 
+	/** ****************************** */
+	// GPS Data
 	/**
-	 * A flag that tells this whether or not stop the player, or to start the
-	 * player.
+	 * Latitude and longitude
 	 */
-	private boolean stopPlayer = true;
+	public double lat = 0;
 
-	// /////////////////////////
+	public double lon = 0;
+
+	public LocationProvider lp = null;
+
+	public Location location = null;
+
+	public Coordinates coordinates = null;
+
+	/** ************************************ */
+	// UI Form: Records
+	/**
+	 * The Form object that contains information about records and EOS.
+	 */
+	public Form myForm;
+	
+	/**
+	 * Belongs to this.myForm. A combo box for recording/stopping/deleting.
+	 */
+	private ChoiceGroup myChoiceGroupActions;
+	
+	/**
+	 * Belongs to this.myForm. A text box that shows some stats on the number of
+	 * recordings made and kept.
+	 */
+	private StringItem strItem_recordsQueued;
+	
+	/**
+	 * Belongs to this.myForm. A text box that shows the user name.
+	 */
+	public TextField strItem_userName;
+
+	/** *********************************** */
 	// UI Canvas: Sound Meter
 	/**
 	 * The Canvas object that draws the graph.
 	 */
 	public HelloCanvas myCanvas;
 
-	// ////////////////////////
-	// UI Form: Records
-	/**
-	 * The Form object that contains information about records and EOS.
-	 */
-	public Form myForm;
 
-	/**
-	 * Belongs to this.myForm. Gauge controlling the base window size.
-	 */
-	//private Gauge myGaugeTotal;
-
-	/**
-	 * Belongs to this.myForm. Gauge controlling the recording window size.
-	 */
-	//private Gauge myGaugeShared;
-
-	/**
-	 * Belongs to this.myForm. A combo box for recording/stopping/deleting.
-	 */
-	private ChoiceGroup myChoiceGroupActions;
-
-	/**
-	 * Belongs to this.myForm. A text box that shows some stats on the number of
-	 * recordings made and kept.
-	 */
-	private StringItem myStringItem;
-
-	/**
-	 * Belongs to this.myForm. A text box that shows the user name.
-	 */
-	public TextField userName_strItem;
-
-	// //////////////////////
+	/** ************************************** */
 	// UI Form: Upload
 	public UploadScreen myUpload;
 
-	// /////////////////////////
+	/** ************************************** */
 	// UI Menu Commands
-
-	// private Command backCommand = new Command("Back", Command.BACK, 1);
-
 	private Command meterScreenCommand = new Command("-> Meter Screen",
 			Command.SCREEN, 1);
 
@@ -277,48 +283,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			Command.SCREEN, 1);
 
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
-
-	private TextField textField_totalLength_ms;
-
-	private int int_totalLength_ms;
-
-	private TextField textField_sharedLength_ms;
-
-	private int int_sharedLength_ms;
-
-	// Extra stuff for traffic.
-
-//	private TextField textField_trafficDensity;
-//
-//	private int intTrafficDensity;
-//
-//	private TextField textField_trafficSpeed;
-//
-//	private int intTrafficSpeed;
-//
-//	private TextField textField_trafficTruckRatio;
-//
-//	private int intTrafficTruckRatio;
-//
-//	private TextField textField_proximityToTraffic;
-//
-//	private int intProximityToTraffic;
-//
-//	private ChoiceGroup choiceGroup_inOutCar;
-//
-//	private String strInOutCar;
-//
-//	private ChoiceGroup choiceGroup_radio;
-//
-//	private String strRadio;
-//
-//	private ChoiceGroup choiceGroup_people;
-//
-//	private String strPeople;
-//
-//	private ChoiceGroup choiceGroup_roadType;
-//
-//	private String strRoadType;
 
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
@@ -350,16 +314,16 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm = new Form("Record Info");
 			//
 			// StringItem: # of Saved Samples
-			this.myStringItem = new StringItem("Records Queued:", String
-					.valueOf(-1), Item.PLAIN);
+			this.strItem_recordsQueued = new StringItem("Records Queued:",
+					String.valueOf(-1), Item.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
-			this.myForm.append(this.myStringItem);
+			this.myForm.append(this.strItem_recordsQueued);
 			//
 			// StringItem: user name
 			String _userName = this.getUserInfoRecord(this.userInfo_rs);
-			this.userName_strItem = new TextField("User name", _userName, 32,
+			this.strItem_userName = new TextField("User name", _userName, 32,
 					TextField.ANY);
-			this.myForm.append(this.userName_strItem);
+			this.myForm.append(this.strItem_userName);
 			//
 			// ChoiceGroup: Actions
 			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
@@ -368,16 +332,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Record", null);
 			this.myChoiceGroupActions.append("Clear", null);
 			this.myChoiceGroupActions.append("Location", null);
-			// this.myForm.append(this.myChoiceGroupActions);
-			// Gauges - Total Window Size | Shared Window Size
-//			this.myGaugeTotal = new Gauge("Total Window Size (0.1 sec):", true,
-//					100, 100);
-//			this.myForm.append(this.myGaugeTotal);
-//			this.myGaugeShared = new Gauge("Shared Window Size (0.1 sec):",
-//					true, 100, 5);
-			// this.myForm.append(this.myGaugeShared);
-			// Add commands.
-			// this.myForm.addCommand(this.showCommand);
+			this.myForm.append(this.myChoiceGroupActions);
 			this.myForm.addCommand(this.meterScreenCommand);
 			this.myForm.addCommand(this.uploadScreenCommand);
 			this.myForm.addCommand(this.exitCommand);
@@ -390,76 +345,20 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					"0", 3, TextField.NUMERIC);
 			this.myForm.append(this.textField_totalLength_ms);
 
+			/*********************************/
+			// Acoustic
+			this.choiceGroup_enableMicrophone = new ChoiceGroup("Microphone:", Choice.MULTIPLE);
+			this.myForm.append(this.choiceGroup_enableMicrophone);
 			this.int_sharedLength_ms = 0;
 			this.textField_sharedLength_ms = new TextField("Shared Period(ms)",
 					"0", 3, TextField.NUMERIC);
 			this.myForm.append(this.textField_sharedLength_ms);
 
-			// Traffic Gauges
-			// this.intTrafficDensity = 0;
-			// this.textField_trafficDensity = new TextField("Traffic Density",
-			// "0", 3, TextField.NUMERIC);
-			// this.myForm.append(this.textField_trafficDensity);
-			//
-			// this.intProximityToTraffic = 0;
-			// this.textField_proximityToTraffic = new TextField(
-			// "Traffic Proximity", "0", 3, TextField.NUMERIC);
-			// this.myForm.append(this.textField_proximityToTraffic);
-			//
-			// this.intTrafficSpeed = 0;
-			// this.textField_trafficSpeed = new TextField("Traffic Speed", "0",
-			// 3, TextField.NUMERIC);
-			// this.myForm.append(this.textField_trafficSpeed);
-			//
-			// this.intTrafficTruckRatio = 0;
-			// this.textField_trafficTruckRatio = new TextField(
-			// "Traffic Truck Ratio", "0", 3, TextField.NUMERIC);
-			// this.myForm.append(this.textField_trafficTruckRatio);
-			//
-			// this.strInOutCar = "NA";
-			// this.choiceGroup_inOutCar = new ChoiceGroup("In/Out Car",
-			// ChoiceGroup.POPUP);
-			// this.choiceGroup_inOutCar.append("NA", null);
-			// this.choiceGroup_inOutCar.append("in", null);
-			// this.choiceGroup_inOutCar.append("out", null);
-			// this.myForm.append(this.choiceGroup_inOutCar);
-			//
-			// this.strPeople = "NA";
-			// this.choiceGroup_people = new ChoiceGroup("People Noise",
-			// ChoiceGroup.POPUP);
-			// this.choiceGroup_people.append("NA", null);
-			// this.choiceGroup_people.append("present", null);
-			// this.choiceGroup_people.append("not present", null);
-			// this.myForm.append(this.choiceGroup_people);
-			//
-			// this.strRadio = "NA";
-			// this.choiceGroup_radio = new ChoiceGroup("Radio Noise",
-			// ChoiceGroup.POPUP);
-			// this.choiceGroup_radio.append("NA", null);
-			// this.choiceGroup_radio.append("present", null);
-			// this.choiceGroup_radio.append("not present", null);
-			// this.myForm.append(this.choiceGroup_radio);
-			//
-			// this.strRoadType = "NA";
-			// this.choiceGroup_roadType = new ChoiceGroup("Road Type",
-			// ChoiceGroup.POPUP);
-			// this.choiceGroup_roadType.append("NA", null);
-			// this.choiceGroup_roadType.append("Freeway", null);
-			// this.choiceGroup_roadType.append("Surface", null);
-			// this.choiceGroup_roadType.append("Dirt", null);
-			// this.choiceGroup_roadType.append("Parking Lot", null);
-			// this.choiceGroup_roadType.append("Parking Garage", null);
-			// this.choiceGroup_roadType.append("Airport", null);
-			// this.choiceGroup_roadType.append("Disneyland", null);
-			// this.myForm.append(this.choiceGroup_roadType);
 
 			// /////////////////////////////////////////////////
 			// UI Canvas (for the sound meter)
 			this.myCanvas = new HelloCanvas(this);
 			// Add commands.
-			// this.myCanvas.addCommand(this.backCommand);
-			// this.myCanvas.addCommand(this.playCommand);
-			// this.myCanvas.addCommand(this.recordCommand);
 			// Install a Command Listener for the Canvas.
 			this.myCanvas.setCommandListener(this);
 			this.myCanvas.addCommand(this.recordScreenCommand);
@@ -473,12 +372,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.alertError("Hi Exception " + e.getMessage());
 			e.printStackTrace();
 		}
-
-		// if (SimpleTest.isLocationApiSupported()) {
-		// this.alertError("location api is supported");
-		// } else {
-		// this.alertError("location api not supported");
-		// }
 
 	}
 
@@ -569,7 +462,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public void itemStateChanged(Item item) {
 		if (item.equals(this.myChoiceGroupActions)) {
 			this.choiceGroupChanged();
-		} else if (item.equals(this.userName_strItem)) {
+		} else if (item.equals(this.strItem_userName)) {
 			String _userName = this.getUserInfoTextField();
 			this.setUserInfoRecord(this.userInfo_rs, _userName);
 		} else if (item.equals(this.textField_totalLength_ms)) {
@@ -579,31 +472,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.int_sharedLength_ms = Integer
 					.parseInt(this.textField_sharedLength_ms.getString());
 		}
-//		} else if (item.equals(this.textField_trafficDensity)) {
-//			this.intTrafficDensity = Integer
-//					.parseInt(this.textField_trafficDensity.getString());
-//		} else if (item.equals(this.textField_trafficSpeed)) {
-//			this.intTrafficSpeed = Integer.parseInt(this.textField_trafficSpeed
-//					.getString());
-//		} else if (item.equals(this.textField_trafficTruckRatio)) {
-//			this.intTrafficTruckRatio = Integer
-//					.parseInt(this.textField_trafficTruckRatio.getString());
-//		} else if (item.equals(this.textField_proximityToTraffic)) {
-//			this.intProximityToTraffic = Integer
-//					.parseInt(this.textField_proximityToTraffic.getString());
-//		} else if (item.equals(this.choiceGroup_inOutCar)) {
-//			int i = this.choiceGroup_inOutCar.getSelectedIndex();
-//			this.strInOutCar = this.choiceGroup_inOutCar.getString(i);
-//		} else if (item.equals(this.choiceGroup_people)) {
-//			int i = this.choiceGroup_people.getSelectedIndex();
-//			this.strPeople = this.choiceGroup_people.getString(i);
-//		} else if (item.equals(this.choiceGroup_radio)) {
-//			int i = this.choiceGroup_radio.getSelectedIndex();
-//			this.strRadio = this.choiceGroup_radio.getString(i);
-//		} else if (item.equals(this.choiceGroup_roadType)) {
-//			int i = this.choiceGroup_roadType.getSelectedIndex();
-//			this.strRoadType = this.choiceGroup_radio.getString(i);
-//		}
 	}
 
 	/**
@@ -759,7 +627,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		this.vc = null;
 
 		// Get Coordinates
-		Coordinates c = getLocation();
+		Coordinates c = getCoordinates();
 		if (c != null) {
 			this.lat = c.getLatitude();
 			this.lon = c.getLongitude();
@@ -834,7 +702,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				e.printStackTrace();
 			}
 		} else if (selectedStr.equals("Location")) {
-			Coordinates c = getLocation();
+			Coordinates c = getCoordinates();
 			if (c != null) {
 				// use coordinate information
 				this.alertError("lat:" + c.getLatitude() + "\nlon:"
@@ -848,33 +716,24 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * 
 	 */
-	private Coordinates getLocation() {
-		Coordinates c = null;
+	private Coordinates getCoordinates() {
 		try {
-			// Create a Criteria object for defining desired selection
-			// criteria
-			Criteria cr = new Criteria();
-			// Specify horizontal accuracy of 500 meters, leave other
-			// parameters
-			// at default values.
-			cr.setHorizontalAccuracy(500);
 			if (this.lp == null) {
+				Criteria cr = new Criteria();
+				cr.setHorizontalAccuracy(500);
 				this.lp = LocationProvider.getInstance(cr);
+
 			}
-
-			// get the location, 30 second timeout
-			Location l = this.lp.getLocation(30);
-
-			c = l.getQualifiedCoordinates();
-
+			this.location = this.lp.getLocation(30);
+			this.coordinates = this.location.getQualifiedCoordinates();
+			return this.coordinates;
 		} catch (LocationException e) {
-			// not able to retrive location information
 			this.alertError("LocationException:" + e.getMessage());
+			return null;
 		} catch (InterruptedException e) {
 			this.alertError("location InterruptedException" + e.getMessage());
+			return null;
 		}
-		return c;
-
 	}
 
 	/**
@@ -1014,7 +873,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		try {
 			int totalSaved = this.recordStore.getNumRecords();
 			String numStr = String.valueOf(totalSaved);
-			this.myStringItem.setText(numStr);
+			this.strItem_recordsQueued.setText(numStr);
 		} catch (RecordStoreNotOpenException e) {
 		}
 		return;
@@ -1066,12 +925,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	private String getUserInfoTextField() {
-		return this.userName_strItem.getString();
+		return this.strItem_userName.getString();
 	}
-
-	// private void setUserInfoTextField(String data) {
-	// this.userName_strItem.setString(data);
-	// }
 
 	/*
 	 * (non-Javadoc)
@@ -1095,20 +950,18 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.midlet.MIDlet#startApp()
 	 */
 	protected void startApp() throws MIDletStateChangeException {
-		// Display.getDisplay(this).setCurrent(this.myCanvas);
-		// this.myCanvas.start();
 		Display.getDisplay(this).setCurrent(this.myForm);
 	}
 
-	// public void locationUpdated(LocationProvider arg0, Location arg1) {
-	// // TODO Auto-generated method stub
-	//
-	// }
-	//
-	// public void providerStateChanged(LocationProvider arg0, int arg1) {
-	// // TODO Auto-generated method stub
-	//
-	// }
+	public void locationUpdated(LocationProvider arg0, Location arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void providerStateChanged(LocationProvider arg0, int arg1) {
+		// TODO Auto-generated method stub
+
+	}
 
 	/**
 	 * Checks whether Location API is supported.

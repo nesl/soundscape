@@ -485,7 +485,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			
 			// <field name="user">ASDFASDF</field>
 			postBuf.append(URLEncode.encode("<field name=\"user\">"));
-			String _userName = this.midlet.userName_strItem.getString();
+			String _userName = this.midlet.strItem_userName.getString();
 			postBuf.append(URLEncode.encode(_userName));
 			postBuf.append(URLEncode.encode("</field>"));
 			

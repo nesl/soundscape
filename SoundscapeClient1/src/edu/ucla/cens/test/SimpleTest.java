@@ -356,7 +356,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			this.int_totalLength_ms = 0;
 			this.textField_totalLength_ms = new TextField("Repeat every (ms)",
-					"0", 3, TextField.NUMERIC);
+					"0", 6, TextField.NUMERIC);
 			this.myForm.append(this.textField_totalLength_ms);
 
 			/** ******************************* */
@@ -374,7 +374,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.append(this.choiceGroup_enableMicrophone);
 			this.int_sharedLength_ms = 0;
 			this.textField_sharedLength_ms = new TextField("Record for (ms)",
-					"0", 3, TextField.NUMERIC);
+					"0", 6, TextField.NUMERIC);
 			this.myForm.append(this.textField_sharedLength_ms);
 
 			/** ****************************** */

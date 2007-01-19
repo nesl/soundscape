@@ -384,6 +384,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
 		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
 		if (selectedStr.equals("Start Recording")) {
+			this.stopPlayer = false;
 			playerRecord();
 		} else if (selectedStr.equals("Stop Recording")) {
 			this.stopPlayer = true;
@@ -407,7 +408,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			Coordinates c = getCoordinates();
 			if (c != null) {
 				// use coordinate information
-				this.alertError("lat:" + c.getLatitude() + "\nlon:"
+				this.alertError("lat:" + c.getLatitude() + " lon:"
 						+ c.getLongitude());
 			} else {
 				this.alertError("error getting location");
@@ -502,6 +503,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @throws IOException
 	 */
 	private void playerRecordHelper() throws MediaException, IOException {
+
 		if (this.int_totalLength_ms < 0) {
 			this.int_totalLength_ms = 10000;
 		}
@@ -562,8 +564,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	private void playerUpdateReset() {
-		this.lat = 0;
-		this.lon = 0;
+		//this.lat = 0;
+		//this.lon = 0;
 	}
 
 	/**

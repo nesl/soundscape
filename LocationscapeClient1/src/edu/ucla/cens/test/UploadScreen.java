@@ -239,7 +239,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.append(this.strItem_recordsRemaining);
 		this.form.append(this.strItem_recordsSent);
 		this.form.addCommand(this.recordScreenCommand);
-		this.form.addCommand(this.meterScreenCommand);
 		this.form.addCommand(this.enableUploadCommand);
 		this.form.addCommand(this.disableUploadCommand);
 		this.form.addCommand(this.exitCommand);

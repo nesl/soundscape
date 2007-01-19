@@ -168,7 +168,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private ChoiceGroup choiceGroup_enableLocation;
 
-	private boolean bool_locationEnabled = true;
+	private boolean bool_locationEnabled = false;
 
 	// private int locationStatus = LocationProvider.OUT_OF_SERVICE;
 

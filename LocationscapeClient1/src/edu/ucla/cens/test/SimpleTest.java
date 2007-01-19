@@ -168,7 +168,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private ChoiceGroup choiceGroup_enableLocation;
 
-	private boolean bool_locationEnabled = false;
+	private boolean bool_locationEnabled = true;
 
 	// private int locationStatus = LocationProvider.OUT_OF_SERVICE;
 
@@ -511,6 +511,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (this.bool_locationEnabled) {
 			playerRecordSetupLocation();
 		}
+		Coordinates c = getCoordinates();
+		if (c != null) {
+			// use coordinate information
+			this.lat = c.getLatitude();
+			this.lon = c.getLongitude();
+			//c.getAltitude();
+		} 
 		this.myThread = new Thread(new SimpleTestHelper(this,
 				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();

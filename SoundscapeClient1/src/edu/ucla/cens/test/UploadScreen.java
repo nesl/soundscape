@@ -66,7 +66,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			} catch (Exception e) {
 				this.parent.alertError("UploadScreenHelper.run()"
 						+ e.getMessage());
-				//e.printStackTrace();
+				// e.printStackTrace();
 			} finally {
 				this.updateParentState(UploadScreen.STOPPED);
 				this.parent.updateView();
@@ -82,17 +82,19 @@ public class UploadScreen implements CommandListener, RecordListener {
 				InvalidRecordIDException, RecordStoreException {
 			this.parent.int_recordsRemaining = this.parent.recordStore
 					.getNumRecords();
-			if (this.parent.int_recordsRemaining > 0) {			
+			if (this.parent.int_recordsRemaining > 0) {
 				int result = -1;
 				try {
 					result = this.parent.uploadRecord();
 					if (result != 200) { // result is not 200
 						this.updateParentState(UploadScreen.SLEEPING);
-						this.parent.midlet.alertError("Got a non-200 response! Sleeping...");
+						this.parent.midlet
+								.alertError("Got a non-200 response! Sleeping...");
 					}
 				} catch (RuntimeException e) {
 					this.updateParentState(UploadScreen.SLEEPING);
-					this.parent.midlet.alertError("Some exception was thrown:" + e.getMessage());
+					this.parent.midlet.alertError("Some exception was thrown:"
+							+ e.getMessage());
 				}
 			} else { // No more records
 				this.updateParentState(UploadScreen.WAITING);
@@ -150,7 +152,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	public int int_recordsRemaining = 0;
 
-	//public Gauge gauge = null;
+	// public Gauge gauge = null;
 
 	public StringItem strItem_recordsRemaining = null;
 
@@ -228,12 +230,12 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.status = new StringItem("Status", "Idle", Item.PLAIN);
 		this.debug = new StringItem("Debug", "Idle", Item.PLAIN);
 		// UI Form - Gauge
-		//this.gauge = new Gauge("Percentage Sent", false, 100, 0);
+		// this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 
 		// UI Form - Assemble Elements
 		this.form.append(this.debug);
 		this.form.append(this.status);
-		//this.form.append(this.gauge);
+		// this.form.append(this.gauge);
 		this.form.append(this.strItem_recordsRemaining);
 		this.form.append(this.strItem_recordsSent);
 		this.form.addCommand(this.recordScreenCommand);
@@ -244,7 +246,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 		// UI Form - Set myself as a listener
 		this.form.setCommandListener(this);
-		
+
 		// Set myself as a record listener
 		this.recordStore.addRecordListener(this);
 	}
@@ -269,7 +271,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	}
 
 	public void log(String message) {
-		//this.debug.setText(message);
+		// this.debug.setText(message);
 	}
 
 	/**
@@ -298,7 +300,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 			if (c == this.recordScreenCommand) {
 				Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
 			} else if (c == this.meterScreenCommand) {
-				Display.getDisplay(this.midlet).setCurrent(this.midlet.myCanvas);
+				Display.getDisplay(this.midlet)
+						.setCurrent(this.midlet.myCanvas);
 				this.midlet.myCanvas.start();
 			} else if (c == this.enableUploadCommand) {
 				this.enableUploadCommandCB();
@@ -438,7 +441,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
 			postBuf.append("&project_id=43");
-			postBuf.append("&tableName=testTraffic");
+			postBuf.append("&tableName=test2");
 			postBuf.append("&data_string=");
 
 			try {
@@ -482,17 +485,17 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			postBuf.append(URLEncode.encode("<table>"));
 			postBuf.append(URLEncode.encode("<row>"));
-			
+
 			// <field name="user">ASDFASDF</field>
 			postBuf.append(URLEncode.encode("<field name=\"user\">"));
 			String _userName = this.midlet.strItem_userName.getString();
 			postBuf.append(URLEncode.encode(_userName));
 			postBuf.append(URLEncode.encode("</field>"));
-			
+
 			postBuf.append(URLEncode.encode(sigSeg.toXML()));
 			// postBuf.append(sigSeg.toXML());
 			// sigSeg.toXML();
-			
+
 			postBuf.append(URLEncode.encode("</row>"));
 			postBuf.append(URLEncode.encode("</table>"));
 
@@ -527,10 +530,10 @@ public class UploadScreen implements CommandListener, RecordListener {
 			if (rc != HttpConnection.HTTP_OK) {
 				this.alertError("HTTP response code: " + String.valueOf(rc));
 			} else {
-				this.popRecord(recID);
 				++this.int_recordsSent;
-				this.updateView();
 			}
+			this.popRecord(recID);
+			this.updateView();
 
 		} catch (Exception e) {
 		} finally {

@@ -56,7 +56,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		 * Number of miliseconds to sleep.
 		 */
 		private int sleepMS = 0;
-
+		
 		/**
 		 * The string to deliver to the listener.
 		 */
@@ -356,7 +356,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			this.int_totalLength_ms = 0;
 			this.textField_totalLength_ms = new TextField("Repeat every (ms)",
-					"0", 6, TextField.NUMERIC);
+					"10000", 6, TextField.NUMERIC);
 			this.myForm.append(this.textField_totalLength_ms);
 
 			/** ******************************* */
@@ -374,7 +374,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.append(this.choiceGroup_enableMicrophone);
 			this.int_sharedLength_ms = 0;
 			this.textField_sharedLength_ms = new TextField("Record for (ms)",
-					"0", 6, TextField.NUMERIC);
+					"1000", 6, TextField.NUMERIC);
 			this.myForm.append(this.textField_sharedLength_ms);
 
 			/** ****************************** */
@@ -389,7 +389,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.choiceGroup_cameraResolution.append("80x60", null);
 			this.choiceGroup_cameraResolution.append("160x120", null);
 			this.choiceGroup_cameraResolution.append("320x240", null);
-			this.choiceGroup_cameraResolution.append("640x480", null);
+			//this.choiceGroup_cameraResolution.append("640x480", null);
 			this.myForm.append(this.choiceGroup_cameraResolution);
 
 			// /////////////////////////////////////////////////
@@ -591,12 +591,15 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		case 3:
 			this.cameraWidth = 640;
 			this.cameraHeight = 480;
+			break;
 		case 2:
 			this.cameraWidth = 320;
 			this.cameraHeight = 240;
+			break;
 		case 1:
 			this.cameraWidth = 160;
 			this.cameraHeight = 120;
+			break;
 		case 0:
 		default:
 			this.cameraWidth = 80;
@@ -907,6 +910,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			String arg = new String("encoding=png&width=");
 			arg += String.valueOf(this.cameraWidth) + new String("&height=")
 					+ String.valueOf(this.cameraHeight);
+			//this.alertError("cam: " + arg);
 			this.cameraOutput = this.vc.getSnapshot(arg);
 		} catch (MediaException e) {
 			this.alertError("MediaException getSnapshot: " + e.getMessage());

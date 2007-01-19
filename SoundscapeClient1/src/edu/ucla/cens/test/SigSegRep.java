@@ -22,26 +22,11 @@ public class SigSegRep {
 	public byte[] data = null;
 
 	public byte[] cameraData = null;
-	
-	public int density = 0;
-
-	public int speed = 0;
-
-	public int ratio = 0;
-
-	public int proximity = 0;
-
-	public String inOutCar = "";
-
-	public String people = "";
-
-	public String radio = "";
-
-	public String roadType = "";
 
 	public double lat = 0;
+
 	public double lon = 0;
-	
+
 	/**
 	 * This constructor doesn't do anything.
 	 */
@@ -68,7 +53,8 @@ public class SigSegRep {
 	 * @param data -
 	 *            the data. NULL means not initialized.
 	 */
-	public SigSegRep(int id, long timeMS, byte[] data, byte[] cameraData, double lat, double lon) {
+	public SigSegRep(int id, long timeMS, byte[] data, byte[] cameraData,
+			double lat, double lon) {
 		this.id = id;
 		this.timeMS = timeMS;
 		this.data = data;
@@ -82,7 +68,6 @@ public class SigSegRep {
 		this.lat = lat;
 		this.lon = lon;
 	}
-
 
 	/**
 	 * Constructor that uses specified id and byte[] rep. of SigSegRep.
@@ -112,18 +97,18 @@ public class SigSegRep {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(record);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		this.timeMS = dataIn.readLong();
-		
+
 		int dataLength = dataIn.readInt();
 		this.data = new byte[dataLength];
 		dataIn.read(data, 0, dataLength);
-		
+
 		int cameraDataLength = dataIn.readInt();
 		this.cameraData = new byte[cameraDataLength];
 		dataIn.read(cameraData, 0, cameraDataLength);
-		
+
 		this.lat = dataIn.readDouble();
 		this.lon = dataIn.readDouble();
-		
+
 		dataIn.close();
 		byteIn.close();
 	}
@@ -137,27 +122,46 @@ public class SigSegRep {
 	public String toXML() {
 		StringBuffer result = new StringBuffer();
 		// result.append("<row>");
-		result.append(this.createField("id", String.valueOf(this.id)));
+		result.append(this
+				.createField("recordTableID", String.valueOf(this.id)));
 		// <field name="date">10235135</field>\n
-		result.append(this.createField("date", String.valueOf(this.timeMS)));
+		String str_date = this.toDateStr();
+		result.append(this.createField("date", str_date));
 		// <field name="data">124af353d33c341....</field>\n
-		
+
 		char[] b64charar = Base64Coder.encode(this.data);
 		String b64enc = String.valueOf(b64charar);
 		// String urlenc = URLEncode.encode(b64enc);
 		result.append(this.createField("data", b64enc));
 		// </row>\n
 		// result.append("</row>");
-		
+
 		b64charar = Base64Coder.encode(this.cameraData);
 		b64enc = String.valueOf(b64charar);
 		result.append(this.createField("cameraData", b64enc));
-		
+
 		result.append(this.createField("lat", String.valueOf(this.lat)));
 		result.append(this.createField("lon", String.valueOf(this.lon)));
-		
-		
+
 		return result.toString();
+	}
+
+	/**
+	 * @return String that represents date and time as YYYY-MM-DD HH:MM:SS
+	 */
+	private String toDateStr() {
+		java.util.Date date = new java.util.Date(this.timeMS);
+		java.util.Calendar cal = java.util.Calendar.getInstance();
+		cal.setTime(date);
+		String year = String.valueOf(cal.get(java.util.Calendar.YEAR));
+		String month = String.valueOf(cal.get(java.util.Calendar.MONTH));
+		String day = String.valueOf(cal.get(java.util.Calendar.DAY_OF_MONTH));
+		String hour = String.valueOf(cal.get(java.util.Calendar.HOUR_OF_DAY));
+		String minute = String.valueOf(cal.get(java.util.Calendar.MINUTE));
+		String second = String.valueOf(cal.get(java.util.Calendar.SECOND));
+		String str_date = year + "-" + month + "-" + day + " " + hour + ":"
+				+ minute + ":" + second;
+		return str_date;
 	}
 
 	/**
@@ -177,8 +181,7 @@ public class SigSegRep {
 			dataOut.write(this.cameraData);
 			dataOut.writeDouble(this.lat);
 			dataOut.writeDouble(this.lon);
-			
-			
+
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

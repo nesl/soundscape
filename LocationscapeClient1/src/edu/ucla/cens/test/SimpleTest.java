@@ -227,7 +227,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// ////////////////////////////////////
 			// Open the record store.
 			try {
-				this.recordStore = RecordStore.openRecordStore("recordstore",
+				this.recordStore = RecordStore.openRecordStore("data",
 						true);
 				this.recordStore.addRecordListener(this);
 			} catch (RecordStoreNotFoundException e) {

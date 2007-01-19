@@ -511,6 +511,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
 		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
 		if (selectedStr.equals("Record")) {
+			this.stopPlayer = false;
 			playerRecord();
 		} else if (selectedStr.equals("Stop")) {
 			this.stopPlayer = true;
@@ -740,7 +741,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	private void playerRecordSetupAudio() {
-		this.stopPlayer = false;
 		this.tempoutput = new ByteArrayOutputStream();
 		try {
 			this.audioPlayer = Manager

@@ -383,12 +383,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void choiceGroupChanged() {
 		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
 		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
-		if (selectedStr.equals("Record")) {
+		if (selectedStr.equals("Start Recording")) {
 			playerRecord();
-		} else if (selectedStr.equals("Stop")) {
+		} else if (selectedStr.equals("Stop Recording")) {
 			this.stopPlayer = true;
 			this.playerUpdate(null, "PAUSE", null);
-		} else if (selectedStr.equals("Clear")) {
+		} else if (selectedStr.equals("Clear Records")) {
 			try {
 				RecordEnumeration recIter = this.recordStore.enumerateRecords(
 						null, null, false);
@@ -403,7 +403,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			} catch (RecordStoreException e) {
 				e.printStackTrace();
 			}
-		} else if (selectedStr.equals("Location")) {
+		} else if (selectedStr.equals("Show Location")) {
 			Coordinates c = getCoordinates();
 			if (c != null) {
 				// use coordinate information
@@ -412,6 +412,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			} else {
 				this.alertError("error getting location");
 			}
+		} else {
+			this.alertError("Bug: no match for" + selectedStr);
 		}
 	}
 

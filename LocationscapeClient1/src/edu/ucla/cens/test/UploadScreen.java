@@ -299,10 +299,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 		try {
 			if (c == this.recordScreenCommand) {
 				Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
-			} else if (c == this.meterScreenCommand) {
-				Display.getDisplay(this.midlet)
-						.setCurrent(this.midlet.myCanvas);
-				this.midlet.myCanvas.start();
 			} else if (c == this.enableUploadCommand) {
 				this.enableUploadCommandCB();
 			} else if (c == this.disableUploadCommand) {

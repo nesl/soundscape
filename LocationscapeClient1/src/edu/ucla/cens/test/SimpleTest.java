@@ -1,13 +1,7 @@
 package edu.ucla.cens.test;
 
 //import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Vector;
-
-import javax.microedition.io.Connector;
-import javax.microedition.io.file.FileConnection;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
 import javax.microedition.lcdui.Choice;
@@ -21,12 +15,9 @@ import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.ItemStateListener;
 import javax.microedition.lcdui.StringItem;
 import javax.microedition.lcdui.TextField;
-import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
-import javax.microedition.media.control.RecordControl;
-import javax.microedition.media.control.VideoControl;
 import javax.microedition.midlet.MIDlet;
 import javax.microedition.midlet.MIDletStateChangeException;
 import javax.microedition.rms.InvalidRecordIDException;
@@ -56,7 +47,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		 * Number of miliseconds to sleep.
 		 */
 		private int sleepMS = 0;
-		
+
 		/**
 		 * The string to deliver to the listener.
 		 */
@@ -166,69 +157,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public RecordStore userInfo_rs = null;
 
 	/**
-	 * A count of the number of acoust samples taken since application start-up.
+	 * A count of the number of samples taken since application start-up.
 	 */
 	public int samplesTaken = 0;
-
-	/** ********************************** */
-	// Acoustic Data
-	private TextField textField_sharedLength_ms;
-
-	private ChoiceGroup choiceGroup_enableMicrophone;
-
-	private boolean bool_microphoneEnabled = false;
-
-	private int int_sharedLength_ms;
-
-	/**
-	 * The byte[] representation of the acoustic data recorded.
-	 */
-	public byte[] output = null;
-
-	/**
-	 * A vector containing power levels of the last several acoustic readings,
-	 * in order from oldest to most recent.
-	 */
-	public Vector power = new Vector();
-
-	/**
-	 * The player for the Recording.
-	 */
-	private Player audioPlayer = null;
-
-	/**
-	 * The player for the camera.
-	 */
-	private Player cameraPlayer = null;
-
-	/**
-	 * Where the player streams the audio data.
-	 */
-	private ByteArrayOutputStream tempoutput = null;
-
-	/**
-	 * The controller for this.audioPlayer;
-	 */
-	private RecordControl rc = null;
-
-	/** ****************************** */
-	// Camera Data
-	/**
-	 * The byte[] representation of the image data captured.
-	 */
-	private ChoiceGroup choiceGroup_enableCamera;
-
-	private boolean bool_cameraEnabled = false;
-
-	private ChoiceGroup choiceGroup_cameraResolution;
-
-	private int cameraWidth = 80;
-
-	private int cameraHeight = 60;
-
-	public byte[] cameraOutput = null;
-
-	private VideoControl vc = null;
 
 	/** ****************************** */
 	// GPS Data
@@ -237,9 +168,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private ChoiceGroup choiceGroup_enableLocation;
 
-	private boolean bool_locationEnabled = false;
+	private boolean bool_locationEnabled = true;
 
-	//private int locationStatus = LocationProvider.OUT_OF_SERVICE;
+	// private int locationStatus = LocationProvider.OUT_OF_SERVICE;
 
 	public double lat = 0;
 
@@ -274,22 +205,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public TextField strItem_userName;
 
-	/** *********************************** */
-	// UI Canvas: Sound Meter
-	/**
-	 * The Canvas object that draws the graph.
-	 */
-	public HelloCanvas myCanvas;
-
 	/** ************************************** */
 	// UI Form: Upload
 	public UploadScreen myUpload;
 
 	/** ************************************** */
 	// UI Menu Commands
-	private Command meterScreenCommand = new Command("-> Meter Screen",
-			Command.SCREEN, 1);
-
 	private Command uploadScreenCommand = new Command("-> Upload Screen",
 			Command.SCREEN, 1);
 
@@ -306,7 +227,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// ////////////////////////////////////
 			// Open the record store.
 			try {
-				this.recordStore = RecordStore.openRecordStore("data", true);
+				this.recordStore = RecordStore.openRecordStore("recordstore",
+						true);
 				this.recordStore.addRecordListener(this);
 			} catch (RecordStoreNotFoundException e) {
 				this.alertError("Error: RecordStore not found:"
@@ -342,14 +264,14 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// ChoiceGroup: Actions
 			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
 					Choice.POPUP);
-			this.myChoiceGroupActions.append("Stop", null);
-			this.myChoiceGroupActions.append("Record", null);
-			this.myChoiceGroupActions.append("Clear", null);
-			this.myChoiceGroupActions.append("Location", null);
+			this.myChoiceGroupActions.append("Stop Recording", null);
+			this.myChoiceGroupActions.append("Start Recording", null);
+			this.myChoiceGroupActions.append("Clear Records", null);
+			this.myChoiceGroupActions.append("Show Location", null);
 			this.myForm.append(this.myChoiceGroupActions);
-			this.myForm.addCommand(this.meterScreenCommand);
 			this.myForm.addCommand(this.uploadScreenCommand);
 			this.myForm.addCommand(this.exitCommand);
+
 			// Install Command and Item Listeners for Form.
 			this.myForm.setCommandListener(this);
 			this.myForm.setItemStateListener(this);
@@ -366,43 +288,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.choiceGroup_enableLocation.append("Enable", null);
 			this.myForm.append(this.choiceGroup_enableLocation);
 
-			/** ****************************** */
-			// Acoustic
-			this.choiceGroup_enableMicrophone = new ChoiceGroup("Microphone:",
-					Choice.MULTIPLE);
-			this.choiceGroup_enableMicrophone.append("Enable", null);
-			this.myForm.append(this.choiceGroup_enableMicrophone);
-			this.int_sharedLength_ms = 0;
-			this.textField_sharedLength_ms = new TextField("Record for (ms)",
-					"1000", 6, TextField.NUMERIC);
-			this.myForm.append(this.textField_sharedLength_ms);
-
-			/** ****************************** */
-			// Camera
-			this.choiceGroup_enableCamera = new ChoiceGroup("Camera:",
-					Choice.MULTIPLE);
-			this.choiceGroup_enableCamera.append("Enable", null);
-			this.myForm.append(this.choiceGroup_enableCamera);
-
-			this.choiceGroup_cameraResolution = new ChoiceGroup("Picture Size",
-					Choice.POPUP);
-			this.choiceGroup_cameraResolution.append("80x60", null);
-			this.choiceGroup_cameraResolution.append("160x120", null);
-			this.choiceGroup_cameraResolution.append("320x240", null);
-			//this.choiceGroup_cameraResolution.append("640x480", null);
-			this.myForm.append(this.choiceGroup_cameraResolution);
-
-			// /////////////////////////////////////////////////
-			// UI Canvas (for the sound meter)
-			this.myCanvas = new HelloCanvas(this);
 			// Add commands.
-			// Install a Command Listener for the Canvas.
-			this.myCanvas.setCommandListener(this);
-			this.myCanvas.addCommand(this.recordScreenCommand);
-			this.myCanvas.addCommand(this.uploadScreenCommand);
-			this.myCanvas.addCommand(this.exitCommand);
-			// this.myForm.addCommand(this.startUploadScreenCommand);
-			// this.myForm.addCommand(this.uploadScreenCommand);
 			this.startUploadScreen();
 
 		} catch (Exception e) {
@@ -462,9 +348,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.notifyDestroyed();
 		} else if (c == this.recordScreenCommand) {
 			Display.getDisplay(this).setCurrent(this.myForm);
-		} else if (c == this.meterScreenCommand) {
-			Display.getDisplay(this).setCurrent(this.myCanvas);
-			this.myCanvas.start();
 		} else if (c == this.uploadScreenCommand) {
 			this.uploadScreenCallback();
 		}
@@ -472,7 +355,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private void uploadScreenCallback() {
 		Display.getDisplay(this).setCurrent(this.myUpload.form);
-
 	}
 
 	/**
@@ -489,17 +371,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.textField_totalLength_ms)) {
 			this.int_totalLength_ms = Integer
 					.parseInt(this.textField_totalLength_ms.getString());
-		} else if (item.equals(this.textField_sharedLength_ms)) {
-			this.int_sharedLength_ms = Integer
-					.parseInt(this.textField_sharedLength_ms.getString());
 		} else if (item.equals(this.choiceGroup_enableLocation)) {
 			this.choiceGroup_enableLocation_changed();
-		} else if (item.equals(this.choiceGroup_enableMicrophone)) {
-			this.choiceGroup_enableMicrophone_changed();
-		} else if (item.equals(this.choiceGroup_enableCamera)) {
-			this.choiceGroup_enableCamera_changed();
-		} else if (item.equals(this.choiceGroup_cameraResolution)) {
-			this.choiceGroup_cameraResolution_changed();
 		}
 	}
 
@@ -576,38 +449,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				.isSelected(0);
 	}
 
-	private void choiceGroup_enableCamera_changed() {
-		this.bool_cameraEnabled = this.choiceGroup_enableCamera.isSelected(0);
-	}
-
-	private void choiceGroup_enableMicrophone_changed() {
-		// Check "enable" option
-		this.bool_microphoneEnabled = this.choiceGroup_enableMicrophone
-				.isSelected(0);
-	}
-
-	private void choiceGroup_cameraResolution_changed() {
-		switch (this.choiceGroup_cameraResolution.getSelectedIndex()) {
-		case 3:
-			this.cameraWidth = 640;
-			this.cameraHeight = 480;
-			break;
-		case 2:
-			this.cameraWidth = 320;
-			this.cameraHeight = 240;
-			break;
-		case 1:
-			this.cameraWidth = 160;
-			this.cameraHeight = 120;
-			break;
-		case 0:
-		default:
-			this.cameraWidth = 80;
-			this.cameraHeight = 60;
-			break;
-		}
-	}
-
 	/**
 	 * Callback for PlayerListener.
 	 * 
@@ -650,19 +491,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	}
 
 	/**
-	 * A helper of this.commandAction. This plays the data contained in
-	 * this.output.
-	 */
-	// private void playCallback2() {
-	// try {
-	// ByteArrayInputStream is = new ByteArrayInputStream(this.output);
-	// Player p = Manager.createPlayer(is, "audio/x-wav");
-	// p.start();
-	// } catch (MediaException me) {
-	// } catch (IOException io) {
-	// }
-	// }
-	/**
 	 * This is the callback for when the user selects "Record", or when the
 	 * timer goes off and it's time to record again. It creates a player...
 	 * starts recording... and creates a thread that will later stop the
@@ -675,23 +503,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		if (this.int_totalLength_ms < 0) {
 			this.int_totalLength_ms = 10000;
 		}
-		if (this.int_sharedLength_ms < 0) {
-			this.int_sharedLength_ms = 0;
-		} else if (this.int_sharedLength_ms >= this.int_totalLength_ms) {
-			this.int_sharedLength_ms = this.int_totalLength_ms;
-		}
 
 		if (this.bool_locationEnabled) {
 			playerRecordSetupLocation();
 		}
-		if (this.bool_microphoneEnabled) {
-			playerRecordSetupAudio();
-		}
-		if (this.bool_cameraEnabled) {
-			playerRecordSetupVideo();
-		}
 		this.myThread = new Thread(new SimpleTestHelper(this,
-				this.int_sharedLength_ms, "PAUSE"));
+				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();
 	}
 
@@ -708,74 +525,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-	private void playerRecordSetupVideo() {
-		try {
-			this.cameraPlayer = Manager.createPlayer("capture://video");
-		} catch (MediaException me) {
-			this
-					.alertError("MediaException playerRecordSetupVideo createPlayer():"
-							+ me.getMessage());
-			return;
-		} catch (IOException ioe) {
-			this
-					.alertError("IOException in playerRecordSetupVideo createPlayer():"
-							+ ioe.getMessage());
-			return;
-		}
-		try {
-			this.cameraPlayer.realize();
-		} catch (MediaException e1) {
-			this.alertError("MediaException recordCallback2 realize():"
-					+ e1.getMessage());
-			return;
-		}
-		this.vc = (VideoControl) this.cameraPlayer.getControl("VideoControl");
-		this.vc.initDisplayMode(VideoControl.USE_GUI_PRIMITIVE, null);
-		try {
-			this.cameraPlayer.start();
-		} catch (MediaException e) {
-			this.alertError("MediaException in recordCallback2 this.p.start:");
-			return;
-		}
-	}
-
-	private void playerRecordSetupAudio() {
-		this.stopPlayer = false;
-		this.tempoutput = new ByteArrayOutputStream();
-		try {
-			this.audioPlayer = Manager
-					.createPlayer("capture://audio?encoding=pcm");
-		} catch (MediaException me) {
-			this
-					.alertError("MediaException playerRecordSetupAudio createPlayer():"
-							+ me.getMessage());
-			return;
-		} catch (IOException ioe) {
-			this
-					.alertError("IOException in playerRecordSetupAudio createPlayer():"
-							+ ioe.getMessage());
-			return;
-		}
-		try {
-			this.audioPlayer.realize();
-		} catch (MediaException e1) {
-			this.alertError("MediaException playerRecordSetupAudio realize():"
-					+ e1.getMessage());
-			return;
-		}
-		this.audioPlayer.addPlayerListener(this);
-		this.rc = (RecordControl) this.audioPlayer.getControl("RecordControl");
-		this.rc.setRecordStream(this.tempoutput);
-		this.rc.startRecord();
-		try {
-			this.audioPlayer.start();
-		} catch (MediaException e) {
-			this
-					.alertError("MediaException in playerRecordSetupAudio this.p.start:");
-			return;
-		}
-	}
-
 	/**
 	 * Helper function for playerUpdate, dispatched to if the event is "PAUSE".
 	 * 
@@ -789,44 +538,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			RecordStoreFullException {
 		++this.samplesTaken;
 		this.playerUpdateCommitAndClose();
-		double noiseLevel = this.getNoiseLevel();
-		playerUpdateCanvas(noiseLevel);
 		playerUpdateStore();
 		playerUpdateReset();
 		playerUpdateMaybeRecordAgain();
-	}
-
-	/**
-	 * Skip the first 44 bytes of the (WAV header), Loop through every byte-pair
-	 * (Short) in this.output. For each Short, accumulate the sum of val^2.
-	 * Return sum/(this.output.length/2).
-	 * 
-	 * @return The noise level.
-	 */
-	private double getNoiseLevel() {
-		long sum = 0;
-		try {
-			for (int i = 44; i < this.output.length; i += 2) {
-				short val = SimpleTest.byteArrayToShort(this.output, i);
-				sum += val * val;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return (2.0 * sum) / this.output.length;
-	}
-
-	/**
-	 * Given a noiseLevel, update the canvas-relate state and repaint.
-	 * 
-	 * @param noiseLevel
-	 */
-	private void playerUpdateCanvas(double noiseLevel) {
-		if (this.power.size() >= 30) {
-			this.power.removeElementAt(0);
-		}
-		this.power.addElement(new Double(noiseLevel));
-		this.myCanvas.repaint();
 	}
 
 	/**
@@ -841,31 +555,26 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void playerUpdateStore() throws RecordStoreNotOpenException,
 			RecordStoreException, RecordStoreFullException, IOException {
 		long timeMS = java.util.Calendar.getInstance().getTime().getTime();
-		new SigSeg(this.recordStore, timeMS, this.output, this.cameraOutput,
-				this.lat, this.lon);
-		
+		new SigSeg(this.recordStore, timeMS, this.lat, this.lon);
 
 	}
 
 	private void playerUpdateReset() {
-		this.output = null;
-		this.cameraOutput = null;
 		this.lat = 0;
 		this.lon = 0;
 	}
-	
+
 	/**
 	 * If the stopPlayer flag is not set, then set another time to record again.
 	 */
 	private void playerUpdateMaybeRecordAgain() {
 		if (!this.stopPlayer) {
 			// Set a timer callback.
-			int sleepMS = this.int_totalLength_ms - this.int_sharedLength_ms;
+			int sleepMS = 0;
 			if (sleepMS < 0) {
 				sleepMS = 0;
 			}
-			this.myThread = new Thread(new SimpleTestHelper(this, sleepMS,
-					"START"));
+			this.myThread = new Thread(new SimpleTestHelper(this, 0, "START"));
 			this.myThread.start();
 		}
 	}
@@ -876,60 +585,12 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @throws IOException
 	 */
 	private void playerUpdateCommitAndClose() throws IOException {
-		if (this.rc != null) {
-			try {
-				this.playerUpdateCommitAndCloseAudio();
-			} catch (IOException e) {
-			}
-			this.rc = null;
-			this.audioPlayer = null;
-			this.tempoutput = null;
-		}
-		if (this.vc != null) {
-			try {
-				playerUpdateCommitAndCloseVideo();
-			} catch (IOException e) {
-			}
-			this.cameraPlayer = null;
-			this.vc = null;
-		}
-
-	}
-
-	private void playerUpdateCommitAndCloseAudio() throws IOException {
-		// Close down the recorder.
-		this.rc.commit();
-		this.audioPlayer.close();
-		this.output = this.tempoutput.toByteArray();
-		this.tempoutput.close();
-	}
-
-	private void playerUpdateCommitAndCloseVideo() throws IOException {
-		// Close the camera.
-		try {
-			String arg = new String("encoding=png&width=");
-			arg += String.valueOf(this.cameraWidth) + new String("&height=")
-					+ String.valueOf(this.cameraHeight);
-			//this.alertError("cam: " + arg);
-			this.cameraOutput = this.vc.getSnapshot(arg);
-		} catch (MediaException e) {
-			this.alertError("MediaException getSnapshot: " + e.getMessage());
-			this.cameraOutput = null;
-		} catch (IllegalStateException e) {
-			this.alertError("IllegalStateException getSnapshot: "
-					+ e.getMessage());
-			this.cameraOutput = null;
-		} catch (SecurityException e) {
-			this.alertError("SecurityException getSnapshot: " + e.getMessage());
-			this.cameraOutput = null;
-		}
-		this.cameraPlayer.close();
-		this.vc = null;
 
 	}
 
 	/**
-	 * 
+	 * This is called when the user selects the "Location" action. It's not
+	 * called by anything other than that.
 	 */
 	private Coordinates getCoordinates() {
 		try {
@@ -1076,71 +737,4 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		return (version != null && !version.equals("")) ? true : false;
 	}
 
-	/**
-	 * This UNUSED function is an example of how to playback an audio file.
-	 */
-	public void playCallback() {
-		String SNDFILE = "file:///E:/audio.wav";
-		FileConnection fconn = null;
-		InputStream inStream = null;
-		Player p = null;
-		fconn = this.createFC(SNDFILE, false);
-		if (fconn == null) {
-			this.alertError("fconn was null");
-			return;
-		}
-		try {
-			inStream = fconn.openDataInputStream();
-		} catch (IOException e) {
-			this
-					.alertError("Can't open input stream for:" + SNDFILE + "/n"
-							+ e);
-			return;
-		}
-		try {
-			// create a datasource that captures live audio
-			p = Manager.createPlayer(inStream, "audio/X-wav");
-			p.start();
-		} catch (IOException e) {
-			this.alertError("IOException in createPlayer:" + e.getMessage());
-		} catch (MediaException e) {
-			this.alertError("MediaException in createPlayer:" + e.getMessage());
-		}
-	}
-
-	/**
-	 * All this code is to create a FileConnection. :P
-	 * 
-	 * @param arg
-	 *            The name of the file to open.
-	 * @param write
-	 *            A boolean that indicates whether or not to open the file for
-	 *            writing.
-	 * @return A FileConnection object tied to the specified file.
-	 */
-	private FileConnection createFC(String arg, boolean write) {
-		FileConnection fconn = null;
-		try {
-			fconn = (FileConnection) Connector.open(arg);
-		} catch (IOException e) {
-			this.alertError("Can't open file (bad URL):" + arg + "/n" + e);
-			return null;
-		}
-		if (write) {
-			if (fconn.exists()) {
-				if (!fconn.canWrite()) {
-					this.alertError("Can't write to existing file:" + arg);
-				}
-			} else {
-				try {
-					fconn.create();
-				} catch (IOException e) {
-					this.alertError("Can't create file:" + arg + "/n"
-							+ e.getMessage());
-					return null;
-				}
-			}
-		}
-		return fconn;
-	}
 }

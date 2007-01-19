@@ -26,12 +26,12 @@ public class SigSeg implements SensorBaseInterface {
 	 *            Handle to the RecordStore object.
 	 * @return a SigSeg object.
 	 */
-	SigSeg(RecordStore recordStore) throws RecordStoreNotOpenException,
-			RecordStoreException, RecordStoreFullException {
-		this.recordStore = recordStore;
-		int id = this.recordStore.addRecord(null, 0, 0);
-		this.rep = new SigSegRep(id);
-	}
+//	SigSeg(RecordStore recordStore) throws RecordStoreNotOpenException,
+//			RecordStoreException, RecordStoreFullException {
+//		this.recordStore = recordStore;
+//		int id = this.recordStore.addRecord(null, 0, 0);
+//		this.rep = new SigSegRep(id);
+//	}
 
 	/**
 	 * Constructor that creates a new record using the specified time-stamp and
@@ -45,12 +45,12 @@ public class SigSeg implements SensorBaseInterface {
 	 * @throws RecordStoreFullException
 	 * @throws RecordStoreNotOpenException
 	 */
-	SigSeg(RecordStore recordStore, long timeMS, byte[] data, byte[] cameraData, double lat, double lon)
+	SigSeg(RecordStore recordStore, long timeMS, double lat, double lon)
 			throws IOException, RecordStoreNotOpenException,
 			RecordStoreFullException, RecordStoreException {
 		this.recordStore = recordStore;
 		int id = this.recordStore.addRecord(null, 0, 0);
-		this.rep = new SigSegRep(id, timeMS, data, cameraData, lat, lon);
+		this.rep = new SigSegRep(id, timeMS, lat, lon);
 		this.setRecord();
 	}
 
@@ -120,15 +120,6 @@ public class SigSeg implements SensorBaseInterface {
 	 */
 	public int getId() {
 		return this.rep.id;
-	}
-
-	/**
-	 * Accessor function for the data.
-	 * 
-	 * @return the data
-	 */
-	public byte[] getData() {
-		return this.rep.data;
 	}
 
 	/**

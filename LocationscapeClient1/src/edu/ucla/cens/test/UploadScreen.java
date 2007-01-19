@@ -436,8 +436,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append("email=adparker%40gmail.com");
 			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
-			postBuf.append("&project_id=43");
-			postBuf.append("&tableName=test2");
+			postBuf.append("&project_id=84");
+			postBuf.append("&tableName=gps");
 			postBuf.append("&data_string=");
 
 			try {
@@ -494,8 +494,6 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			postBuf.append(URLEncode.encode("</row>"));
 			postBuf.append(URLEncode.encode("</table>"));
-
-			// URL encode!
 
 			try {
 				// String urlenc = URLEncode.encode(postBuf.toString());

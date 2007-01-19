@@ -89,7 +89,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 					if (result != 200) { // result is not 200
 						this.updateParentState(UploadScreen.SLEEPING);
 						this.parent.midlet
-								.alertError("Got a non-200 response! Sleeping...");
+								.alertError("Got a non-200 response! Sleeping...:" + String.valueOf(result));
 					}
 				} catch (RuntimeException e) {
 					this.updateParentState(UploadScreen.SLEEPING);
@@ -525,11 +525,22 @@ public class UploadScreen implements CommandListener, RecordListener {
 			} else {
 				++this.int_recordsSent;
 			}
-			this.popRecord(recID);
-			this.updateView();
-
 		} catch (Exception e) {
 		} finally {
+			try {
+				this.popRecord(recID);
+			} catch (RecordStoreNotOpenException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InvalidRecordIDException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (RecordStoreException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			this.updateView();
+
 			if (is != null)
 				try {
 					is.close();

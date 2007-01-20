@@ -51,14 +51,16 @@ public class SigSeg implements SensorBaseInterface {
 			RecordStoreNotOpenException, RecordStoreFullException,
 			RecordStoreException {
 		this.recordStore = recordStore;
-		int id = 0;
 		synchronized (this.recordStore) {
-			id = this.recordStore.addRecord(null, 0, 0);
+			int id = this.recordStore.getNextRecordID();
+			//int id = this.recordStore.addRecord(null, 0, 0);
+			this.rep = new SigSegRep(id, timeMS, isValid, lpstate, lat, lon,
+					alt, horizontal_accuracy, vertical_accuracy, course, speed,
+					timestamp);
+			byte[] record = this.rep.toByteArray();
+			//this.recordStore.setRecord(this.rep.id, record, 0, record.length);
+			this.recordStore.addRecord(record, 0, record.length);
 		}
-		this.rep = new SigSegRep(id, timeMS, isValid, lpstate, lat, lon, alt,
-				horizontal_accuracy, vertical_accuracy, course, speed,
-				timestamp);
-		this.setRecord();
 	}
 
 	// SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
@@ -89,7 +91,7 @@ public class SigSeg implements SensorBaseInterface {
 			InvalidRecordIDException, RecordStoreException, IOException {
 		this.recordStore = recordStore;
 		byte[] result = null;
-		synchronized(this.recordStore) {
+		synchronized (this.recordStore) {
 			result = this.recordStore.getRecord(id);
 		}
 		this.rep = new SigSegRep(id, result);
@@ -116,13 +118,12 @@ public class SigSeg implements SensorBaseInterface {
 	 * @throws RecordStoreNotOpenException
 	 * @throws IOException
 	 */
-	public void setTimeMS(long timeMS) throws RecordStoreNotOpenException,
-			InvalidRecordIDException, RecordStoreFullException,
-			RecordStoreException, IOException {
-		this.rep.timeMS = timeMS;
-		this.setRecord();
-	}
-
+	// public void setTimeMS(long timeMS) throws RecordStoreNotOpenException,
+	// InvalidRecordIDException, RecordStoreFullException,
+	// RecordStoreException, IOException {
+	// this.rep.timeMS = timeMS;
+	// this.setRecord();
+	// }
 	/**
 	 * Accessor function for the ID.
 	 * 
@@ -141,23 +142,21 @@ public class SigSeg implements SensorBaseInterface {
 		return this.recordStore;
 	}
 
-	/**
-	 * Updates the RecordStore with the current state of rep.
-	 * 
-	 * @throws RecordStoreNotOpenException
-	 * @throws InvalidRecordIDException
-	 * @throws RecordStoreFullException
-	 * @throws RecordStoreException
-	 * @throws IOException
-	 */
-	private void setRecord() throws RecordStoreNotOpenException,
-			InvalidRecordIDException, RecordStoreFullException,
-			RecordStoreException, IOException {
-		byte[] record = this.rep.toByteArray();
-		synchronized(this.recordStore) {
-			this.recordStore.setRecord(this.rep.id, record, 0, record.length);
-		}
-	}
+//	/**
+//	 * Warning, caller should sync on record store. Updates the RecordStore with
+//	 * the current state of rep.
+//	 * 
+//	 * @throws RecordStoreNotOpenException
+//	 * @throws InvalidRecordIDException
+//	 * @throws RecordStoreFullException
+//	 * @throws RecordStoreException
+//	 * @throws IOException
+//	 */
+//	private void setRecord() throws RecordStoreNotOpenException,
+//			InvalidRecordIDException, RecordStoreFullException,
+//			RecordStoreException, IOException {
+//		
+//	}
 
 	/**
 	 * Returns an XML string deliminated by "<row>" and "</row>".

@@ -26,13 +26,12 @@ public class SigSeg implements SensorBaseInterface {
 	 *            Handle to the RecordStore object.
 	 * @return a SigSeg object.
 	 */
-//	SigSeg(RecordStore recordStore) throws RecordStoreNotOpenException,
-//			RecordStoreException, RecordStoreFullException {
-//		this.recordStore = recordStore;
-//		int id = this.recordStore.addRecord(null, 0, 0);
-//		this.rep = new SigSegRep(id);
-//	}
-
+	// SigSeg(RecordStore recordStore) throws RecordStoreNotOpenException,
+	// RecordStoreException, RecordStoreFullException {
+	// this.recordStore = recordStore;
+	// int id = this.recordStore.addRecord(null, 0, 0);
+	// this.rep = new SigSegRep(id);
+	// }
 	/**
 	 * Constructor that creates a new record using the specified time-stamp and
 	 * data.
@@ -45,27 +44,32 @@ public class SigSeg implements SensorBaseInterface {
 	 * @throws RecordStoreFullException
 	 * @throws RecordStoreNotOpenException
 	 */
-	SigSeg(RecordStore recordStore, long timeMS, double lat, double lon)
-			throws IOException, RecordStoreNotOpenException,
-			RecordStoreFullException, RecordStoreException {
+	SigSeg(RecordStore recordStore, long timeMS, Boolean isValid,
+			Integer lpstate, double lat, double lon, Float alt,
+			Float horizontal_accuracy, Float vertical_accuracy, Float course,
+			Float speed, Long timestamp) throws IOException,
+			RecordStoreNotOpenException, RecordStoreFullException,
+			RecordStoreException {
 		this.recordStore = recordStore;
 		int id = this.recordStore.addRecord(null, 0, 0);
-		this.rep = new SigSegRep(id, timeMS, lat, lon);
+		this.rep = new SigSegRep(id, timeMS, isValid, lpstate, lat, lon, alt,
+				horizontal_accuracy, vertical_accuracy, course, speed,
+				timestamp);
 		this.setRecord();
 	}
 
-//	SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
-//			int ratio, int proximity, String inOutCar, String people,
-//			String radio, String roadType, byte[] data, byte[] cameraData,
-//			double lat, double lon)
-//			throws IOException, RecordStoreNotOpenException,
-//			RecordStoreFullException, RecordStoreException {
-//		this.recordStore = recordStore;
-//		int id = this.recordStore.addRecord(null, 0, 0);
-//		this.rep = new SigSegRep(id, timeMS, density, speed, ratio, proximity,
-//				inOutCar, people, radio, roadType, data, cameraData, lat, lon);
-//		this.setRecord();
-//	}
+	// SigSeg(RecordStore recordStore, long timeMS, int density, int speed,
+	// int ratio, int proximity, String inOutCar, String people,
+	// String radio, String roadType, byte[] data, byte[] cameraData,
+	// double lat, double lon)
+	// throws IOException, RecordStoreNotOpenException,
+	// RecordStoreFullException, RecordStoreException {
+	// this.recordStore = recordStore;
+	// int id = this.recordStore.addRecord(null, 0, 0);
+	// this.rep = new SigSegRep(id, timeMS, density, speed, ratio, proximity,
+	// inOutCar, people, radio, roadType, data, cameraData, lat, lon);
+	// this.setRecord();
+	// }
 
 	/**
 	 * Constructor that links into an existing record entry.

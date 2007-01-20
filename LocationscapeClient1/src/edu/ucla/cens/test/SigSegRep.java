@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import javax.microedition.location.LocationProvider;
 
 public class SigSegRep {
 	/** The id of the record. -1 means it's not been set. */
@@ -22,6 +23,22 @@ public class SigSegRep {
 
 	public double lon = 0;
 
+	public Boolean isValid = new Boolean(false);
+
+	public Integer lpstate = new Integer(LocationProvider.OUT_OF_SERVICE);
+
+	public Float alt = new Float(Float.NaN);
+
+	public Float horizontal_accuracy = new Float(Float.NaN);
+
+	public Float vertical_accuracy = new Float(Float.NaN);
+
+	public Float course = new Float(Float.NaN);
+
+	public Float speed = new Float(Float.NaN);
+
+	public Long timestamp = new Long(0);
+
 	/**
 	 * This constructor doesn't do anything.
 	 */
@@ -34,10 +51,9 @@ public class SigSegRep {
 	 * @param id -
 	 *            ID of corresponding record ID in some record store.
 	 */
-//	public SigSegRep(int id) {
-//		this(id, (long) -1, 0, 0);
-//	}
-
+	// public SigSegRep(int id) {
+	// this(id, (long) -1, 0, 0);
+	// }
 	/**
 	 * Constructor that uses specified id, time-stamp, and data.
 	 * 
@@ -48,11 +64,21 @@ public class SigSegRep {
 	 * @param data -
 	 *            the data. NULL means not initialized.
 	 */
-	public SigSegRep(int id, long timeMS, double lat, double lon) {
+	public SigSegRep(int id, long timeMS, Boolean isValid, Integer lpstate,
+			double lat, double lon, Float alt, Float horizontal_accuracy,
+			Float vertical_accuray, Float course, Float speed, Long timestamp) {
 		this.id = id;
 		this.timeMS = timeMS;
+		this.isValid = isValid;
+		this.lpstate = lpstate;
 		this.lat = lat;
 		this.lon = lon;
+		this.alt = alt;
+		this.horizontal_accuracy = horizontal_accuracy;
+		this.vertical_accuracy = vertical_accuray;
+		this.course = course;
+		this.speed = speed;
+		this.timestamp = timestamp;
 	}
 
 	/**
@@ -83,9 +109,16 @@ public class SigSegRep {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(record);
 		DataInputStream dataIn = new DataInputStream(byteIn);
 		this.timeMS = dataIn.readLong();
-
+		this.isValid = new Boolean(dataIn.readBoolean());
+		this.lpstate = new Integer(dataIn.readInt());
 		this.lat = dataIn.readDouble();
 		this.lon = dataIn.readDouble();
+		this.alt = new Float(dataIn.readFloat());
+		this.horizontal_accuracy = new Float(dataIn.readFloat());
+		this.vertical_accuracy = new Float(dataIn.readFloat());
+		this.course = new Float(dataIn.readFloat());
+		this.speed = new Float(dataIn.readFloat());
+		this.timestamp = new Long(dataIn.readLong());
 
 		dataIn.close();
 		byteIn.close();
@@ -99,12 +132,50 @@ public class SigSegRep {
 	 */
 	public String toXML() {
 		StringBuffer result = new StringBuffer();
+		
 		result.append(this
 				.createField("recordTableID", String.valueOf(this.id)));
+		
 		String str_date = this.toDateStr();
 		result.append(this.createField("date", str_date));
+		
+		int isValidInt = 0;
+		if (this.isValid.booleanValue()) { 
+			isValidInt = 1; 
+		}
+		result.append(this.createField("isValid", String.valueOf(isValidInt)));
+	
+		if (this.lpstate != null) {
+			result.append(this.createField("LPState", this.lpstate.toString()));
+		}
+		
 		result.append(this.createField("lat", String.valueOf(this.lat)));
+		
 		result.append(this.createField("lon", String.valueOf(this.lon)));
+		
+		if ((this.alt != null) && (!this.alt.isNaN())) {
+			result.append(this.createField("alt", this.alt.toString()));
+		}
+		
+		if ((this.horizontal_accuracy != null) && (!this.horizontal_accuracy.isNaN())) {
+			result.append(this.createField("horizontalAccuracy", this.horizontal_accuracy.toString()));
+		}
+		
+		if ((this.vertical_accuracy != null) && (!this.vertical_accuracy.isNaN())) {
+			result.append(this.createField("verticalAccuracy", this.vertical_accuracy.toString()));
+		}
+		
+		if ((this.course != null) && (!this.course.isNaN())) {
+			result.append(this.createField("course", this.course.toString()));
+		}
+		
+		if ((this.speed != null) && (!this.speed.isNaN())) {
+			result.append(this.createField("speed", this.speed.toString()));
+		}
+		
+		if ((this.timestamp != null) && (this.timestamp.longValue() > 0)) {
+			result.append(this.createField("timestamp", this.timestamp.toString()));
+		}
 		return result.toString();
 	}
 
@@ -137,9 +208,16 @@ public class SigSegRep {
 		DataOutputStream dataOut = new DataOutputStream(byteOut);
 		try {
 			dataOut.writeLong(this.timeMS);
+			dataOut.writeBoolean(this.isValid.booleanValue());
+			dataOut.writeInt(this.lpstate.intValue());
 			dataOut.writeDouble(this.lat);
 			dataOut.writeDouble(this.lon);
-
+			dataOut.writeFloat(this.alt.floatValue());
+			dataOut.writeFloat(this.horizontal_accuracy.floatValue());
+			dataOut.writeFloat(this.vertical_accuracy.floatValue());
+			dataOut.writeFloat(this.course.floatValue());
+			dataOut.writeFloat(this.speed.floatValue());
+			dataOut.writeFloat(this.timestamp.longValue());
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

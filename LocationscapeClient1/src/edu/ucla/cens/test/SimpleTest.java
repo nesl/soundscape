@@ -180,7 +180,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	public Location location = null;
 
-	public Coordinates coordinates = null;
+	public QualifiedCoordinates coordinates = null;
 
 	/** ************************************ */
 	// UI Form: Records
@@ -227,8 +227,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// ////////////////////////////////////
 			// Open the record store.
 			try {
-				this.recordStore = RecordStore.openRecordStore("data",
-						true);
+				this.recordStore = RecordStore.openRecordStore("data", true);
 				this.recordStore.addRecordListener(this);
 			} catch (RecordStoreNotFoundException e) {
 				this.alertError("Error: RecordStore not found:"
@@ -512,12 +511,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			playerRecordSetupLocation();
 		}
 		Coordinates c = getCoordinates();
+
 		if (c != null) {
 			// use coordinate information
 			this.lat = c.getLatitude();
 			this.lon = c.getLongitude();
-			//c.getAltitude();
-		} 
+			// c.getAltitude();
+		}
 		this.myThread = new Thread(new SimpleTestHelper(this,
 				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();
@@ -566,13 +566,44 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void playerUpdateStore() throws RecordStoreNotOpenException,
 			RecordStoreException, RecordStoreFullException, IOException {
 		long timeMS = java.util.Calendar.getInstance().getTime().getTime();
-		new SigSeg(this.recordStore, timeMS, this.lat, this.lon);
+
+		// The Floats may be Float.NaN.
+
+		Boolean isValid = new Boolean(false);
+		Integer lpstate = new Integer(LocationProvider.OUT_OF_SERVICE);
+		Float alt = new Float(Float.NaN);
+		Float horizontal_accuracy = new Float(Float.NaN);
+		Float vertical_accuracy = new Float(Float.NaN);
+		Float course = new Float(Float.NaN);
+		Float speed = new Float(Float.NaN);
+		Long timestamp = new Long(0);
+
+		if (this.lp != null) {
+			lpstate = new Integer(this.lp.getState());
+		}
+		if (this.location != null) {
+			isValid = new Boolean(this.location.isValid());
+			course = new Float(this.location.getCourse());
+			speed = new Float(this.location.getSpeed());
+			timestamp = new Long(this.location.getTimestamp());
+		}
+		if (this.coordinates != null) {
+			alt = new Float(this.coordinates.getAltitude());
+			horizontal_accuracy = new Float(this.coordinates
+					.getHorizontalAccuracy());
+			vertical_accuracy = new Float(this.coordinates
+					.getVerticalAccuracy());
+		}
+
+		new SigSeg(this.recordStore, timeMS, isValid, lpstate, this.lat,
+				this.lon, alt, horizontal_accuracy, vertical_accuracy, course,
+				speed, timestamp);
 
 	}
 
 	private void playerUpdateReset() {
-		//this.lat = 0;
-		//this.lon = 0;
+		// this.lat = 0;
+		// this.lon = 0;
 	}
 
 	/**
@@ -609,7 +640,6 @@ public class SimpleTest extends MIDlet implements CommandListener,
 				Criteria cr = new Criteria();
 				cr.setHorizontalAccuracy(500);
 				this.lp = LocationProvider.getInstance(cr);
-
 			}
 			this.location = this.lp.getLocation(30);
 			this.coordinates = this.location.getQualifiedCoordinates();

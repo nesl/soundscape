@@ -96,6 +96,13 @@ public class SigSegRep {
 		this.fromByteArray(record);
 	}
 
+	public float conditionalReadFloat(DataInputStream dataIn) throws IOException{
+		if (dataIn.readBoolean() == true) {
+			return dataIn.readFloat();
+		} else {
+			return Float.NaN;
+		}
+	}
 	/**
 	 * Modifies this to take on values of the fields contained in record.
 	 * 
@@ -113,11 +120,20 @@ public class SigSegRep {
 		this.lpstate = new Integer(dataIn.readInt());
 		this.lat = dataIn.readDouble();
 		this.lon = dataIn.readDouble();
-		this.alt = new Float(dataIn.readFloat());
-		this.horizontal_accuracy = new Float(dataIn.readFloat());
-		this.vertical_accuracy = new Float(dataIn.readFloat());
-		this.course = new Float(dataIn.readFloat());
-		this.speed = new Float(dataIn.readFloat());
+		
+		
+		
+//		this.alt = new Float(dataIn.readFloat());
+//		this.horizontal_accuracy = new Float(dataIn.readFloat());
+//		this.vertical_accuracy = new Float(dataIn.readFloat());
+//		this.course = new Float(dataIn.readFloat());
+//		this.speed = new Float(dataIn.readFloat());
+		this.alt = new Float(conditionalReadFloat(dataIn));
+		this.horizontal_accuracy = new Float(conditionalReadFloat(dataIn));
+		this.vertical_accuracy = new Float(conditionalReadFloat(dataIn));
+		this.course = new Float(conditionalReadFloat(dataIn));
+		this.speed = new Float(conditionalReadFloat(dataIn));
+
 		this.timestamp = new Long(dataIn.readLong());
 
 		dataIn.close();
@@ -146,7 +162,17 @@ public class SigSegRep {
 		result.append(this.createField("isValid", String.valueOf(isValidInt)));
 	
 		if (this.lpstate != null) {
-			result.append(this.createField("LPState", this.lpstate.toString()));
+			switch(this.lpstate.intValue()) {
+			case LocationProvider.AVAILABLE:
+				result.append(this.createField("LPState", "AVAILABLE"));
+				break;
+			case LocationProvider.TEMPORARILY_UNAVAILABLE:
+				result.append(this.createField("LPState", "TEMPORARILY_UNAVAILABLE"));
+				break;
+			case LocationProvider.OUT_OF_SERVICE:
+				result.append(this.createField("LPState", "OUT_OF_SERVICE"));
+				break;
+			}
 		}
 		
 		result.append(this.createField("lat", String.valueOf(this.lat)));
@@ -154,7 +180,7 @@ public class SigSegRep {
 		result.append(this.createField("lon", String.valueOf(this.lon)));
 		
 		if ((this.alt != null) && (!this.alt.isNaN())) {
-			result.append(this.createField("alt", this.alt.toString()));
+			result.append(this.createField("altitude", this.alt.toString()));
 		}
 		
 		if ((this.horizontal_accuracy != null) && (!this.horizontal_accuracy.isNaN())) {
@@ -174,7 +200,7 @@ public class SigSegRep {
 		}
 		
 		if ((this.timestamp != null) && (this.timestamp.longValue() > 0)) {
-			result.append(this.createField("timestamp", this.timestamp.toString()));
+			result.append(this.createField("dataTimestamp", this.timestamp.toString()));
 		}
 		return result.toString();
 	}
@@ -197,15 +223,15 @@ public class SigSegRep {
 		return str_date;
 	}
 
-//	public void conditionalWriteFloat(DataOutputStream dataOut, Float f) {
-//		if ((f!=null) && (!f.isNaN())) {
-//			dataOut.writeBoolean(true);
-//			dataOut.writeFloat(f);
-//		} else {
-//			dataOut.writeBoolean(false);
-//		}
-//	}
-//	
+	public void conditionalWriteFloat(DataOutputStream dataOut, Float f) throws IOException {
+		if ((f!=null) && (!f.isNaN())) {
+			dataOut.writeBoolean(true);
+			dataOut.writeFloat(f.floatValue());
+		} else {
+			dataOut.writeBoolean(false);
+		} 
+	}
+	
 	
 	
 	/**
@@ -223,17 +249,15 @@ public class SigSegRep {
 			dataOut.writeInt(this.lpstate.intValue());
 			dataOut.writeDouble(this.lat);
 			dataOut.writeDouble(this.lon);
-//			this.conditionalWriteFloat(dataOut, this.alt);
-//			this.conditionalWriteFloat(dataOut, this.horizontal_accuracy);
-//			this.conditionalWriteFloat(dataOut, this.vertical_accuracy);
-//			this.conditionalWriteFloat(dataOut, this.course);
-//			this.conditionalWriteFloat(dataOut, this.speed);
+
+			this.conditionalWriteFloat(dataOut, this.alt);
+			this.conditionalWriteFloat(dataOut, this.horizontal_accuracy);
+			this.conditionalWriteFloat(dataOut, this.vertical_accuracy);
+			this.conditionalWriteFloat(dataOut, this.course);
+			this.conditionalWriteFloat(dataOut, this.speed);
 			
-			dataOut.writeFloat(this.horizontal_accuracy.floatValue());
-			dataOut.writeFloat(this.vertical_accuracy.floatValue());
-			dataOut.writeFloat(this.course.floatValue());
-			dataOut.writeFloat(this.speed.floatValue());
 			dataOut.writeLong(this.timestamp.longValue());
+			
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

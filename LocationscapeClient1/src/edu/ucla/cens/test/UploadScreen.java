@@ -265,23 +265,23 @@ public class UploadScreen implements CommandListener, RecordListener {
 	 */
 	public void popRecord(int recID) throws RecordStoreNotOpenException,
 			InvalidRecordIDException, RecordStoreException {
-		
-			try {
-				this.recordStore.deleteRecord(recID);
-			} catch (RecordStoreNotOpenException e) {
-				this.alertError("popRecord:deleteRecord RecordStoreNotOpen");
-				e.printStackTrace();
-				throw e;
-			} catch (InvalidRecordIDException e) {
-				this.alertError("popRecord:deleteRecord InvalidRecordID");
-				e.printStackTrace();
-				throw e;
-			} catch (RecordStoreException e) {
-				this.alertError("popRecord:deleteRecord RecordStoreException");
-				e.printStackTrace();
-				throw e;
-			}
-		
+
+		try {
+			this.recordStore.deleteRecord(recID);
+		} catch (RecordStoreNotOpenException e) {
+			this.alertError("popRecord:deleteRecord RecordStoreNotOpen");
+			e.printStackTrace();
+			throw e;
+		} catch (InvalidRecordIDException e) {
+			// this.alertError("popRecord:deleteRecord InvalidRecordID");
+			e.printStackTrace();
+			throw e;
+		} catch (RecordStoreException e) {
+			this.alertError("popRecord:deleteRecord RecordStoreException");
+			e.printStackTrace();
+			throw e;
+		}
+
 	}
 
 	public void log(String message) {
@@ -386,8 +386,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 		int rc = -1;
 		int recID = 0;
 		RecordEnumeration recIter = null;
-		//SigSeg sigSeg = null;
+		// SigSeg sigSeg = null;
 		Vector sigSegV = new Vector();
+		int recID_offset = 0;
 		this.log("Test1");
 		try {
 			try {
@@ -480,6 +481,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			try {
 				for (int i = 0; i < 10; ++i) {
 					sigSegV.addElement(new SigSeg(this.recordStore, recID + i));
+					recID_offset = i;
 				}
 			} catch (RecordStoreNotOpenException e) {
 				alertError("post:SigSeg RecordStoreNotOpen ");// +
@@ -554,20 +556,20 @@ public class UploadScreen implements CommandListener, RecordListener {
 			}
 		} catch (Exception e) {
 		} finally {
-			for (int i = 0; i < 10; ++i) {
-				try {
-					synchronized (this.recordStore) {
+			for (int i = 0; i < recID_offset; ++i) {
+				synchronized (this.recordStore) {
+					try {
 						this.popRecord(recID + i);
+					} catch (RecordStoreNotOpenException e1) {
+						e1.printStackTrace();
+					} catch (InvalidRecordIDException e1) {
+						e1.printStackTrace();
+					} catch (RecordStoreException e1) {
+						e1.printStackTrace();
 					}
-				} catch (RecordStoreNotOpenException e1) {
-					e1.printStackTrace();
-				} catch (InvalidRecordIDException e1) {
-					e1.printStackTrace();
-				} catch (RecordStoreException e1) {
-					e1.printStackTrace();
 				}
 			}
-			
+
 			this.updateView();
 
 			if (is != null)

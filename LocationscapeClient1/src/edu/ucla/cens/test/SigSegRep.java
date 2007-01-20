@@ -197,6 +197,17 @@ public class SigSegRep {
 		return str_date;
 	}
 
+//	public void conditionalWriteFloat(DataOutputStream dataOut, Float f) {
+//		if ((f!=null) && (!f.isNaN())) {
+//			dataOut.writeBoolean(true);
+//			dataOut.writeFloat(f);
+//		} else {
+//			dataOut.writeBoolean(false);
+//		}
+//	}
+//	
+	
+	
 	/**
 	 * Returns a byte[] representation of this.
 	 * 
@@ -212,12 +223,17 @@ public class SigSegRep {
 			dataOut.writeInt(this.lpstate.intValue());
 			dataOut.writeDouble(this.lat);
 			dataOut.writeDouble(this.lon);
-			dataOut.writeFloat(this.alt.floatValue());
+//			this.conditionalWriteFloat(dataOut, this.alt);
+//			this.conditionalWriteFloat(dataOut, this.horizontal_accuracy);
+//			this.conditionalWriteFloat(dataOut, this.vertical_accuracy);
+//			this.conditionalWriteFloat(dataOut, this.course);
+//			this.conditionalWriteFloat(dataOut, this.speed);
+			
 			dataOut.writeFloat(this.horizontal_accuracy.floatValue());
 			dataOut.writeFloat(this.vertical_accuracy.floatValue());
 			dataOut.writeFloat(this.course.floatValue());
 			dataOut.writeFloat(this.speed.floatValue());
-			dataOut.writeFloat(this.timestamp.longValue());
+			dataOut.writeLong(this.timestamp.longValue());
 			byte[] result = byteOut.toByteArray();
 			dataOut.close();
 			byteOut.close();

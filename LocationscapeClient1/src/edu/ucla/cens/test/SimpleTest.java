@@ -324,7 +324,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		// ////////////////////////////////////////
 		// UI Upload form
 		try {
-			this.myUpload = new UploadScreen(this);
+			this.myUpload = new UploadScreen(this, this.recordStore);
 		} catch (RecordStoreNotOpenException e) {
 			this.alertError("Error starting upload screen: " + e.getMessage());
 		} catch (NullPointerException e) {
@@ -389,19 +389,21 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.stopPlayer = true;
 			this.playerUpdate(null, "PAUSE", null);
 		} else if (selectedStr.equals("Clear Records")) {
-			try {
-				RecordEnumeration recIter = this.recordStore.enumerateRecords(
-						null, null, false);
-				while (recIter.hasNextElement()) {
-					int recId = recIter.nextRecordId();
-					this.recordStore.deleteRecord(recId);
+			synchronized (this.recordStore) {
+				try {
+					RecordEnumeration recIter = this.recordStore
+							.enumerateRecords(null, null, false);
+					while (recIter.hasNextElement()) {
+						int recId = recIter.nextRecordId();
+						this.recordStore.deleteRecord(recId);
+					}
+				} catch (RecordStoreNotOpenException e) {
+					e.printStackTrace();
+				} catch (InvalidRecordIDException e) {
+					e.printStackTrace();
+				} catch (RecordStoreException e) {
+					e.printStackTrace();
 				}
-			} catch (RecordStoreNotOpenException e) {
-				e.printStackTrace();
-			} catch (InvalidRecordIDException e) {
-				e.printStackTrace();
-			} catch (RecordStoreException e) {
-				e.printStackTrace();
 			}
 		} else if (selectedStr.equals("Show Location")) {
 			Coordinates c = getCoordinates();
@@ -693,11 +695,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 *            This is ignored.
 	 */
 	private void updateStringItem(RecordStore recordStore, int recordID) {
-		try {
-			int totalSaved = this.recordStore.getNumRecords();
-			String numStr = String.valueOf(totalSaved);
-			this.strItem_recordsQueued.setText(numStr);
-		} catch (RecordStoreNotOpenException e) {
+		synchronized (this.recordStore) {
+			try {
+				int totalSaved = this.recordStore.getNumRecords();
+				String numStr = String.valueOf(totalSaved);
+				this.strItem_recordsQueued.setText(numStr);
+			} catch (RecordStoreNotOpenException e) {
+			}
 		}
 		return;
 	}

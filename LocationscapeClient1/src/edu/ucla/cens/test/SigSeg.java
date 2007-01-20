@@ -51,7 +51,10 @@ public class SigSeg implements SensorBaseInterface {
 			RecordStoreNotOpenException, RecordStoreFullException,
 			RecordStoreException {
 		this.recordStore = recordStore;
-		int id = this.recordStore.addRecord(null, 0, 0);
+		int id = 0;
+		synchronized (this.recordStore) {
+			id = this.recordStore.addRecord(null, 0, 0);
+		}
 		this.rep = new SigSegRep(id, timeMS, isValid, lpstate, lat, lon, alt,
 				horizontal_accuracy, vertical_accuracy, course, speed,
 				timestamp);
@@ -85,7 +88,10 @@ public class SigSeg implements SensorBaseInterface {
 	SigSeg(RecordStore recordStore, int id) throws RecordStoreNotOpenException,
 			InvalidRecordIDException, RecordStoreException, IOException {
 		this.recordStore = recordStore;
-		byte[] result = this.recordStore.getRecord(id);
+		byte[] result = null;
+		synchronized(this.recordStore) {
+			result = this.recordStore.getRecord(id);
+		}
 		this.rep = new SigSegRep(id, result);
 	}
 
@@ -132,7 +138,7 @@ public class SigSeg implements SensorBaseInterface {
 	 * @return the recordStore
 	 */
 	public RecordStore getRecordStore() {
-		return recordStore;
+		return this.recordStore;
 	}
 
 	/**
@@ -148,7 +154,9 @@ public class SigSeg implements SensorBaseInterface {
 			InvalidRecordIDException, RecordStoreFullException,
 			RecordStoreException, IOException {
 		byte[] record = this.rep.toByteArray();
-		this.recordStore.setRecord(this.rep.id, record, 0, record.length);
+		synchronized(this.recordStore) {
+			this.recordStore.setRecord(this.rep.id, record, 0, record.length);
+		}
 	}
 
 	/**

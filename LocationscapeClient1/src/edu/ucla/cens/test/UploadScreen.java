@@ -3,6 +3,7 @@ package edu.ucla.cens.test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Vector;
 
 import javax.microedition.io.ConnectionNotFoundException;
 import javax.microedition.io.Connector;
@@ -21,8 +22,6 @@ import javax.microedition.rms.RecordEnumeration;
 import javax.microedition.rms.RecordListener;
 import javax.microedition.rms.RecordStore;
 import javax.microedition.rms.RecordStoreException;
-import javax.microedition.rms.RecordStoreFullException;
-import javax.microedition.rms.RecordStoreNotFoundException;
 import javax.microedition.rms.RecordStoreNotOpenException;
 
 public class UploadScreen implements CommandListener, RecordListener {
@@ -40,7 +39,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 		 */
 		UploadScreenHelper(UploadScreen parent) {
 			this.parent = parent;
-			this.parent.recordStore.addRecordListener(this);
+			synchronized (this.parent.recordStore) {
+				this.parent.recordStore.addRecordListener(this);
+			}
 		}
 
 		public void run() {
@@ -80,8 +81,10 @@ public class UploadScreen implements CommandListener, RecordListener {
 		 */
 		private void doUploading() throws RecordStoreNotOpenException,
 				InvalidRecordIDException, RecordStoreException {
-			this.parent.int_recordsRemaining = this.parent.recordStore
-					.getNumRecords();
+			synchronized (this.parent.recordStore) {
+				this.parent.int_recordsRemaining = this.parent.recordStore
+						.getNumRecords();
+			}
 			if (this.parent.int_recordsRemaining > 0) {
 				int result = -1;
 				try {
@@ -89,7 +92,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 					if (result != 200) { // result is not 200
 						this.updateParentState(UploadScreen.SLEEPING);
 						this.parent.midlet
-								.alertError("Got a non-200 response! Sleeping...:" + String.valueOf(result));
+								.alertError("Got a non-200 response! Sleeping...:"
+										+ String.valueOf(result));
 					}
 				} catch (RuntimeException e) {
 					this.updateParentState(UploadScreen.SLEEPING);
@@ -205,24 +209,28 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 	int state = UploadScreen.STOPPED;
 
-	public UploadScreen(SimpleTest midlet) throws RecordStoreNotOpenException {
+	public UploadScreen(SimpleTest midlet, RecordStore recordStore)
+			throws RecordStoreNotOpenException {
 
 		this.midlet = midlet;
 
 		// Open the record store.
-		try {
-			this.recordStore = RecordStore.openRecordStore("data", true);
-		} catch (RecordStoreNotFoundException e) {
-			this.alertError("Error: RecordStore not found:" + e.getMessage());
-		} catch (RecordStoreFullException e) {
-			this.alertError("Error: RecordStore full:" + e.getMessage());
-		} catch (RecordStoreException e) {
-			this.alertError("Error: RecordStore Exception:" + e.getMessage());
-		}
+		// try {
+		this.recordStore = recordStore;
+		// RecordStore.openRecordStore("data", true);
+		// } catch (RecordStoreNotFoundException e) {
+		// this.alertError("Error: RecordStore not found:" + e.getMessage());
+		// } catch (RecordStoreFullException e) {
+		// this.alertError("Error: RecordStore full:" + e.getMessage());
+		// } catch (RecordStoreException e) {
+		// this.alertError("Error: RecordStore Exception:" + e.getMessage());
+		// }
 
 		// UI Form - string items
 		this.form = new Form("Upload Info");
-		this.int_recordsRemaining = this.recordStore.getNumRecords();
+		synchronized (this.recordStore) {
+			this.int_recordsRemaining = this.recordStore.getNumRecords();
+		}
 		this.strItem_recordsRemaining = new StringItem("Records Queued", String
 				.valueOf(this.int_recordsRemaining), Item.PLAIN);
 		this.strItem_recordsSent = new StringItem("Records Sent", String
@@ -247,26 +255,33 @@ public class UploadScreen implements CommandListener, RecordListener {
 		this.form.setCommandListener(this);
 
 		// Set myself as a record listener
-		this.recordStore.addRecordListener(this);
+		synchronized (this.recordStore) {
+			this.recordStore.addRecordListener(this);
+		}
 	}
 
+	/*
+	 * Warning. You need to synchronize on the record store before calling me!
+	 */
 	public void popRecord(int recID) throws RecordStoreNotOpenException,
 			InvalidRecordIDException, RecordStoreException {
-		try {
-			this.recordStore.deleteRecord(recID);
-		} catch (RecordStoreNotOpenException e) {
-			this.alertError("popRecord:deleteRecord RecordStoreNotOpen");
-			e.printStackTrace();
-			throw e;
-		} catch (InvalidRecordIDException e) {
-			this.alertError("popRecord:deleteRecord InvalidRecordID");
-			e.printStackTrace();
-			throw e;
-		} catch (RecordStoreException e) {
-			this.alertError("popRecord:deleteRecord RecordStoreException");
-			e.printStackTrace();
-			throw e;
-		}
+		
+			try {
+				this.recordStore.deleteRecord(recID);
+			} catch (RecordStoreNotOpenException e) {
+				this.alertError("popRecord:deleteRecord RecordStoreNotOpen");
+				e.printStackTrace();
+				throw e;
+			} catch (InvalidRecordIDException e) {
+				this.alertError("popRecord:deleteRecord InvalidRecordID");
+				e.printStackTrace();
+				throw e;
+			} catch (RecordStoreException e) {
+				this.alertError("popRecord:deleteRecord RecordStoreException");
+				e.printStackTrace();
+				throw e;
+			}
+		
 	}
 
 	public void log(String message) {
@@ -371,7 +386,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 		int rc = -1;
 		int recID = 0;
 		RecordEnumeration recIter = null;
-		SigSeg sigSeg = null;
+		//SigSeg sigSeg = null;
+		Vector sigSegV = new Vector();
 		this.log("Test1");
 		try {
 			try {
@@ -439,13 +455,16 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append("&tableName=gps");
 			postBuf.append("&data_string=");
 
-			try {
-				recIter = this.recordStore.enumerateRecords(null, null, true);
-			} catch (RecordStoreNotOpenException e) {
-				this
-						.alertError("post:enumrateRecords RecordStoreNotOpenException"
-								+ e.getMessage());
-				throw e;
+			synchronized (this.recordStore) {
+				try {
+					recIter = this.recordStore.enumerateRecords(null, null,
+							true);
+				} catch (RecordStoreNotOpenException e) {
+					this
+							.alertError("post:enumrateRecords RecordStoreNotOpenException"
+									+ e.getMessage());
+					throw e;
+				}
 			}
 			this.log("Test6");
 
@@ -459,15 +478,17 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.log("Test7");
 
 			try {
-				sigSeg = new SigSeg(this.recordStore, recID);
+				for (int i = 0; i < 10; ++i) {
+					sigSegV.addElement(new SigSeg(this.recordStore, recID + i));
+				}
 			} catch (RecordStoreNotOpenException e) {
 				alertError("post:SigSeg RecordStoreNotOpen ");// +
 				// e.getMessage());
 				throw e;
 			} catch (InvalidRecordIDException e) {
-				alertError("post:SigSeg InvalidIDException ");// +
+				// alertError("post:SigSeg InvalidIDException ");// +
 				// e.getMessage());
-				throw e;
+				// throw e;
 			} catch (RecordStoreException e) {
 				alertError("post:SigSeg RecordStoreException"); // ";//+
 				// e.getMessage());;
@@ -476,22 +497,24 @@ public class UploadScreen implements CommandListener, RecordListener {
 				alertError("post:SigSeg IOException " + e.getMessage());
 				throw e;
 			}
+
 			this.log("Test8");
 
 			postBuf.append(URLEncode.encode("<table>"));
-			postBuf.append(URLEncode.encode("<row>"));
 
-			// <field name="user">ASDFASDF</field>
-			postBuf.append(URLEncode.encode("<field name=\"user\">"));
-			String _userName = this.midlet.strItem_userName.getString();
-			postBuf.append(URLEncode.encode(_userName));
-			postBuf.append(URLEncode.encode("</field>"));
-
-			postBuf.append(URLEncode.encode(sigSeg.toXML()));
-			// postBuf.append(sigSeg.toXML());
-			// sigSeg.toXML();
-
-			postBuf.append(URLEncode.encode("</row>"));
+			for (int i = 0; i < sigSegV.size(); ++i) {
+				SigSeg ss = (SigSeg) sigSegV.elementAt(i);
+				postBuf.append(URLEncode.encode("<row>"));
+				// <field name="user">ASDFASDF</field>
+				postBuf.append(URLEncode.encode("<field name=\"user\">"));
+				String _userName = this.midlet.strItem_userName.getString();
+				postBuf.append(URLEncode.encode(_userName));
+				postBuf.append(URLEncode.encode("</field>"));
+				postBuf.append(URLEncode.encode(ss.toXML()));
+				// postBuf.append(sigSeg.toXML());
+				// sigSeg.toXML();
+				postBuf.append(URLEncode.encode("</row>"));
+			}
 			postBuf.append(URLEncode.encode("</table>"));
 
 			try {
@@ -504,12 +527,16 @@ public class UploadScreen implements CommandListener, RecordListener {
 			}
 			this.log("Test9");
 
-			try {
-				os.flush();
-			} catch (IOException e) {
-				alertError("post:os.flush IOException " + e.getMessage());
-				throw e;
-			}
+			// The reason why i'm commenting this out is because the
+			// documentation says the OutputStream version of flush does
+			// nothing. And further, I occasionally get IO exceptions here. :P
+
+			// try {
+			// os.flush();
+			// } catch (IOException e) {
+			// alertError("post:os.flush IOException " + e.getMessage());
+			// throw e;
+			// }
 			this.log("Test10");
 
 			try {
@@ -523,22 +550,24 @@ public class UploadScreen implements CommandListener, RecordListener {
 			if (rc != HttpConnection.HTTP_OK) {
 				this.alertError("HTTP response code: " + String.valueOf(rc));
 			} else {
-				++this.int_recordsSent;
+				this.int_recordsSent += sigSegV.size();
 			}
 		} catch (Exception e) {
 		} finally {
-			try {
-				this.popRecord(recID);
-			} catch (RecordStoreNotOpenException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (InvalidRecordIDException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (RecordStoreException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			for (int i = 0; i < 10; ++i) {
+				try {
+					synchronized (this.recordStore) {
+						this.popRecord(recID + i);
+					}
+				} catch (RecordStoreNotOpenException e1) {
+					e1.printStackTrace();
+				} catch (InvalidRecordIDException e1) {
+					e1.printStackTrace();
+				} catch (RecordStoreException e1) {
+					e1.printStackTrace();
+				}
 			}
+			
 			this.updateView();
 
 			if (is != null)
@@ -590,7 +619,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 	 */
 	private void updateRecordsRemaining(RecordStore recordStore) {
 		try {
-			this.int_recordsRemaining = recordStore.getNumRecords();
+			synchronized (recordStore) {
+				this.int_recordsRemaining = recordStore.getNumRecords();
+			}
 		} catch (RecordStoreNotOpenException e) {
 			this.alertError("RecordStoreNotOpenException: " + e.getMessage());
 		}

@@ -118,18 +118,18 @@ class imageTagger:
 				qList[currentIndex] = u'Name : ' + self.userName
 				qListBox.set_list(qList)
                 	elif currentItem[0] == qLocation[0]:
-                        	locationTags = [u'Home', u'CENS', u'UCLA', u'Santa Monica', u'Westwood', u'Brentwood']
+                        	locationTags = [u'Home', u'CENS', u'UCLA', u'Santa Monica', u'Westwood', u'Brentwood', u'Venice', u'Other']
                         	locationTags.sort()
                         	locationTagIndex = appuifw.popup_menu(locationTags, u"Select your location and press ok.")
-                        	if(locationTagIndex in range(0, 6)):
+                        	if(locationTagIndex in range(0, 8)):
                         		self.locationTag = locationTags[locationTagIndex]
 					qList[currentIndex] = u'Location : ' + self.locationTag
 					qListBox.set_list(qList)
                 	elif currentItem[0] == qActivity[0]:
-                        	activityTags = [u'Working', u'Playing', u'Walking', u'Shopping', u'Eating', u'Relaxing', u'Reading', u'Sleeping', u'Talking', u'Watching']
+                        	activityTags = [u'Working', u'Playing', u'Walking', u'Shopping', u'Eating', u'Relaxing', u'Reading', u'Sleeping', u'Talking', u'Watching', u'Driving', u'Other']
                         	activityTags.sort()
                         	activityTagIndex = appuifw.popup_menu(activityTags, u"Select your activity and press ok.")
-                        	if(activityTagIndex in range(0, 7)):
+                        	if(activityTagIndex in range(0, 12)):
                         		self.activityTag = activityTags[activityTagIndex]
 					qList[currentIndex] = u'Activity : ' + self.activityTag
 					qListBox.set_list(qList)

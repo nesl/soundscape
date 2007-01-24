@@ -209,6 +209,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	// UI Form: Upload
 	public UploadScreen myUpload;
 
+	// UI Form: GPS Details
+	public GPSScreen gpsScreen;
+
 	/** ************************************** */
 	// UI Menu Commands
 	private Command uploadScreenCommand = new Command("-> Upload Screen",
@@ -217,6 +220,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private Command recordScreenCommand = new Command("-> Record Screen",
 			Command.SCREEN, 1);
 
+	private Command gpsScreenCommand = new Command("-> GPS Screen",
+			Command.SCREEN, 1);
+	
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
 	/**
@@ -269,6 +275,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myChoiceGroupActions.append("Show Location", null);
 			this.myForm.append(this.myChoiceGroupActions);
 			this.myForm.addCommand(this.uploadScreenCommand);
+			this.myForm.addCommand(this.gpsScreenCommand);
 			this.myForm.addCommand(this.exitCommand);
 
 			// Install Command and Item Listeners for Form.
@@ -289,6 +296,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			// Add commands.
 			this.startUploadScreen();
+			this.startGPSScreen();
 
 		} catch (Exception e) {
 			this.alertError("Hi Exception " + e.getMessage());
@@ -336,6 +344,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
+	private void startGPSScreen() {
+		this.gpsScreen = new GPSScreen(this);
+	}
+
 	/*
 	 * Callback for the softkey menu
 	 * 
@@ -349,6 +361,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			Display.getDisplay(this).setCurrent(this.myForm);
 		} else if (c == this.uploadScreenCommand) {
 			this.uploadScreenCallback();
+		} else if (c == this.gpsScreenCommand) {
+			this.gpsScreenCallback();
 		}
 	}
 
@@ -356,6 +370,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		Display.getDisplay(this).setCurrent(this.myUpload.form);
 	}
 
+	private void gpsScreenCallback() {
+		Display.getDisplay(this).setCurrent(this.gpsScreen.textBox);
+	}
 	/**
 	 * Callback for ChoiceGroup when it has a state change.
 	 * 
@@ -551,9 +568,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			RecordStoreFullException {
 		++this.samplesTaken;
 		this.playerUpdateCommitAndClose();
-		playerUpdateStore();
-		playerUpdateReset();
-		playerUpdateMaybeRecordAgain();
+		this.playerUpdateStore();
+		this.playerUpdateReset();
+		this.playerUpdateMaybeRecordAgain();
 	}
 
 	/**
@@ -636,7 +653,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * This is called when the user selects the "Location" action. It's not
 	 * called by anything other than that.
 	 */
-	private Coordinates getCoordinates() {
+	public Coordinates getCoordinates() {
 		try {
 			if (this.lp == null) {
 				Criteria cr = new Criteria();
@@ -712,6 +729,24 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.midlet.MIDlet#destroyApp(boolean)
 	 */
 	protected void destroyApp(boolean arg0) throws MIDletStateChangeException {
+		synchronized (this.recordStore) {
+			try {
+				this.recordStore.closeRecordStore();
+			} catch (RecordStoreNotOpenException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (RecordStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		synchronized (this.userInfo_rs) {
+			try {
+				this.userInfo_rs.closeRecordStore();
+			} catch (RecordStoreNotOpenException e) {
+			} catch (RecordStoreException e) {
+			}
+		}
 		if (this.lp != null) {
 			this.lp.reset();
 		}

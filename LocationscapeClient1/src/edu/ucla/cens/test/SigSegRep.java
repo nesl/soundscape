@@ -152,7 +152,7 @@ public class SigSegRep {
 		result.append(this
 				.createField("recordTableID", String.valueOf(this.id)));
 		
-		String str_date = this.toDateStr();
+		String str_date = this.toDateStr(this.timeMS);
 		result.append(this.createField("date", str_date));
 		
 		int isValidInt = 0;
@@ -208,21 +208,33 @@ public class SigSegRep {
 	/**
 	 * @return String that represents date and time as YYYY-MM-DD HH:MM:SS
 	 */
-	private String toDateStr() {
-		java.util.Date date = new java.util.Date(this.timeMS);
+	private String toDateStr(long timeMS) {
+		java.util.Date date = new java.util.Date(timeMS);
 		java.util.Calendar cal = java.util.Calendar.getInstance();
 		cal.setTime(date);
 		String year = String.valueOf(cal.get(java.util.Calendar.YEAR));
 		String month = String.valueOf(cal.get(java.util.Calendar.MONTH));
+		month = this.maybePrependZero(month);
 		String day = String.valueOf(cal.get(java.util.Calendar.DAY_OF_MONTH));
+		day = this.maybePrependZero(day);
 		String hour = String.valueOf(cal.get(java.util.Calendar.HOUR_OF_DAY));
+		hour = this.maybePrependZero(hour);
 		String minute = String.valueOf(cal.get(java.util.Calendar.MINUTE));
+		minute = this.maybePrependZero(minute);
 		String second = String.valueOf(cal.get(java.util.Calendar.SECOND));
+		second = this.maybePrependZero(second);
 		String str_date = year + "-" + month + "-" + day + " " + hour + ":"
 				+ minute + ":" + second;
 		return str_date;
 	}
-
+	
+	private String maybePrependZero(String s) {
+		if (s.length() == 1) {
+			s = "0" + s;
+		}
+		return s;
+	}
+	
 	public void conditionalWriteFloat(DataOutputStream dataOut, Float f) throws IOException {
 		if ((f!=null) && (!f.isNaN())) {
 			dataOut.writeBoolean(true);

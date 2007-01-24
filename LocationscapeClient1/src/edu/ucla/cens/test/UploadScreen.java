@@ -480,8 +480,8 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 			try {
 				for (int i = 0; i < 10; ++i) {
-					sigSegV.addElement(new SigSeg(this.recordStore, recID + i));
 					recID_offset = i;
+					sigSegV.addElement(new SigSeg(this.recordStore, recID + i));
 				}
 			} catch (RecordStoreNotOpenException e) {
 				alertError("post:SigSeg RecordStoreNotOpen ");// +
@@ -544,9 +544,9 @@ public class UploadScreen implements CommandListener, RecordListener {
 			try {
 				rc = c.getResponseCode();
 			} catch (IOException e) {
-				alertError("post:c.getResponseCode IOException"
-						+ e.getMessage());
-				throw e;
+				//alertError("post:c.getResponseCode IOException"
+				//		+ e.getMessage());
+				//throw e;
 			}
 			this.log("Test11");
 			if (rc != HttpConnection.HTTP_OK) {
@@ -556,7 +556,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			}
 		} catch (Exception e) {
 		} finally {
-			for (int i = 0; i < recID_offset; ++i) {
+			for (int i = 0; i <= recID_offset; ++i) {
 				synchronized (this.recordStore) {
 					try {
 						this.popRecord(recID + i);

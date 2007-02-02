@@ -546,6 +546,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.lon = c.getLongitude();
 			// c.getAltitude();
 		} 
+		this.gpsScreen.updateDisplayCB();
 		this.myThread = new Thread(new SimpleTestHelper(this,
 				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();

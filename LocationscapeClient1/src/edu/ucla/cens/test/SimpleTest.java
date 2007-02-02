@@ -168,7 +168,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private ChoiceGroup choiceGroup_enableLocation;
 
-	private boolean bool_locationEnabled = true;
+	//private boolean bool_locationEnabled = true;
 
 	// private int locationStatus = LocationProvider.OUT_OF_SERVICE;
 
@@ -205,6 +205,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public TextField strItem_userName;
 
+	public TextField strItem_gpsState;
+
 	/** ************************************** */
 	// UI Form: Upload
 	public UploadScreen myUpload;
@@ -222,7 +224,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 	private Command gpsScreenCommand = new Command("-> GPS Screen",
 			Command.SCREEN, 1);
-	
+
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
 	/**
@@ -266,6 +268,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 					TextField.ANY);
 			this.myForm.append(this.strItem_userName);
 			//
+			// StringItem: GPS state
+			this.strItem_gpsState = new TextField("GPS State", "Not Started",
+					32, TextField.ANY);
+			this.myForm.append(this.strItem_gpsState);
+			//
 			// ChoiceGroup: Actions
 			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
 					Choice.POPUP);
@@ -282,7 +289,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.myForm.setCommandListener(this);
 			this.myForm.setItemStateListener(this);
 
-			this.int_totalLength_ms = 0;
+			this.int_totalLength_ms = 10000;
 			this.textField_totalLength_ms = new TextField("Repeat every (ms)",
 					"10000", 6, TextField.NUMERIC);
 			this.myForm.append(this.textField_totalLength_ms);
@@ -373,6 +380,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	private void gpsScreenCallback() {
 		Display.getDisplay(this).setCurrent(this.gpsScreen.textBox);
 	}
+
 	/**
 	 * Callback for ChoiceGroup when it has a state change.
 	 * 
@@ -387,9 +395,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		} else if (item.equals(this.textField_totalLength_ms)) {
 			this.int_totalLength_ms = Integer
 					.parseInt(this.textField_totalLength_ms.getString());
-		} else if (item.equals(this.choiceGroup_enableLocation)) {
-			this.choiceGroup_enableLocation_changed();
-		}
+		} 
+//		else if (item.equals(this.choiceGroup_enableLocation)) {
+//			this.choiceGroup_enableLocation_changed();
+//		}
 	}
 
 	/**
@@ -465,10 +474,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-	private void choiceGroup_enableLocation_changed() {
-		this.bool_locationEnabled = this.choiceGroup_enableLocation
-				.isSelected(0);
-	}
+//	private void choiceGroup_enableLocation_changed() {
+//		this.bool_locationEnabled = this.choiceGroup_enableLocation
+//				.isSelected(0);
+//	}
 
 	/**
 	 * Callback for PlayerListener.
@@ -493,22 +502,22 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * 
 	 */
 	private void playerRecord() {
-		while (true) {
+		// while (true) {
+		try {
+			this.playerRecordHelper();
+			// break;
+		} catch (MediaException e) {
 			try {
-				this.playerRecordHelper();
-				break;
-			} catch (MediaException e) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e1) {
-				}
-			} catch (IOException e) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e1) {
-				}
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+			}
+		} catch (IOException e) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
 			}
 		}
+		// }
 	}
 
 	/**
@@ -522,13 +531,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	private void playerRecordHelper() throws MediaException, IOException {
 
-		if (this.int_totalLength_ms < 0) {
+		if (this.int_totalLength_ms <= 0) {
 			this.int_totalLength_ms = 10000;
 		}
 
-		if (this.bool_locationEnabled) {
-			playerRecordSetupLocation();
-		}
+//		if (this.bool_locationEnabled) {
+//			playerRecordSetupLocation();
+//		}
 		Coordinates c = getCoordinates();
 
 		if (c != null) {
@@ -536,24 +545,24 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.lat = c.getLatitude();
 			this.lon = c.getLongitude();
 			// c.getAltitude();
-		}
+		} 
 		this.myThread = new Thread(new SimpleTestHelper(this,
 				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();
 	}
 
-	private void playerRecordSetupLocation() {
-		try {
-			if (this.lp == null) {
-				Criteria cr = new Criteria();
-				cr.setHorizontalAccuracy(500);
-				this.lp = LocationProvider.getInstance(cr);
-				this.lp.setLocationListener(this, -1, -1, -1);
-			}
-		} catch (LocationException e) {
-			this.alertError("LocationException:" + e.getMessage());
-		}
-	}
+//	private void playerRecordSetupLocation() {
+//		try {
+//			if (this.lp == null) {
+//				Criteria cr = new Criteria();
+//				cr.setHorizontalAccuracy(500);
+//				this.lp = LocationProvider.getInstance(cr);
+//				this.lp.setLocationListener(this, -1, -1, -1);
+//			}
+//		} catch (LocationException e) {
+//			this.alertError("LocationException:" + e.getMessage());
+//		}
+//	}
 
 	/**
 	 * Helper function for playerUpdate, dispatched to if the event is "PAUSE".
@@ -655,19 +664,31 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public Coordinates getCoordinates() {
 		try {
+			if ((this.lp != null)
+					&& ((this.lp.getState() == LocationProvider.OUT_OF_SERVICE)
+					|| (this.lp.getState() == LocationProvider.TEMPORARILY_UNAVAILABLE)))
+			{
+				this.lp.reset();
+				this.lp = null;
+			}
 			if (this.lp == null) {
 				Criteria cr = new Criteria();
 				cr.setHorizontalAccuracy(500);
 				this.lp = LocationProvider.getInstance(cr);
+				this.lp.setLocationListener(this, -1, -1, -1);
 			}
-			this.location = this.lp.getLocation(30);
+			this.location = this.lp.getLocation(5);
 			this.coordinates = this.location.getQualifiedCoordinates();
+			this.gpsScreen.updateDisplayCB();
 			return this.coordinates;
 		} catch (LocationException e) {
-			this.alertError("LocationException:" + e.getMessage());
+			// this.alertError("LocationException:" + e.getMessage());
+			this.gpsScreen.updateDisplayCB();
 			return null;
 		} catch (InterruptedException e) {
-			this.alertError("location InterruptedException" + e.getMessage());
+			// this.alertError("location InterruptedException" +
+			// e.getMessage());
+			this.gpsScreen.updateDisplayCB();
 			return null;
 		}
 	}
@@ -782,13 +803,21 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.lat = 0;
 			this.lon = 0;
 		}
+		this.gpsScreen.updateDisplayCB();
 	}
 
 	public void providerStateChanged(LocationProvider lp, int lp_status) {
-		if (lp_status == LocationProvider.OUT_OF_SERVICE) {
-			this.lp.reset();
-			this.lp = null;
+		switch (lp_status) {
+		case LocationProvider.AVAILABLE:
+			this.strItem_gpsState.setString("Available");
+			break;
+		case LocationProvider.TEMPORARILY_UNAVAILABLE:
+			this.strItem_gpsState.setString("Temporarily Unavailable");
+			break;
+		case LocationProvider.OUT_OF_SERVICE:
+			this.strItem_gpsState.setString("Out of Service");
 		}
+		this.gpsScreen.updateDisplayCB();
 	}
 
 	/**

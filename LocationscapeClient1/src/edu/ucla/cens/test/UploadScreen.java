@@ -241,7 +241,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 		// this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 
 		// UI Form - Assemble Elements
-		this.form.append(this.debug);
+		//this.form.append(this.debug);
 		this.form.append(this.status);
 		// this.form.append(this.gauge);
 		this.form.append(this.strItem_recordsRemaining);
@@ -479,7 +479,11 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.log("Test7");
 
 			try {
-				for (int i = 0; i < 10; ++i) {
+				int numRecords = 10;
+				synchronized(this.recordStore) {
+					numRecords = java.lang.Math.min(numRecords, this.recordStore.getNumRecords());
+				}
+				for (int i = 0; i < numRecords; ++i) {
 					recID_offset = i;
 					sigSegV.addElement(new SigSeg(this.recordStore, recID + i));
 				}

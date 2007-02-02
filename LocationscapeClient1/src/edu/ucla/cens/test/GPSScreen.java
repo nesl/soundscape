@@ -13,8 +13,8 @@ import javax.microedition.location.LocationProvider;
 // and then displays all the info in a TextBox.
 public class GPSScreen implements CommandListener {
 
-	public Command updateDisplayCommand = new Command("* Update Display",
-			Command.SCREEN, 1);
+//	public Command updateDisplayCommand = new Command("* Update Display",
+//			Command.SCREEN, 1);
 
 	public Command recordScreenCommand = new Command("-> Record Screen",
 			Command.SCREEN, 1);
@@ -25,7 +25,7 @@ public class GPSScreen implements CommandListener {
 	public Command exitCommand = new Command("Exit", Command.EXIT, 1);
 
 	public TextBox textBox = new TextBox("GPS Details",
-			"Please select \"Update Display\" in the menu.", 9999,
+			"Please go to Record Screen and select \"Start Recording\"  to see GPS Data.", 9999,
 			TextField.UNEDITABLE);
 
 	private SimpleTest midlet = null;
@@ -34,15 +34,16 @@ public class GPSScreen implements CommandListener {
 		this.midlet = midlet;
 		this.textBox.addCommand(recordScreenCommand);
 		this.textBox.addCommand(uploadScreenCommand);
-		this.textBox.addCommand(updateDisplayCommand);
+		//this.textBox.addCommand(updateDisplayCommand);
 		this.textBox.addCommand(exitCommand);
 		this.textBox.setCommandListener(this);
 	}
 
 	public void commandAction(Command c, Displayable d) {
-		if (c == this.updateDisplayCommand) {
-			this.updateDisplayCB();
-		} else if (c == this.recordScreenCommand) {
+//		if (c == this.updateDisplayCommand) {
+//			this.updateDisplayCB();
+//		} else 
+		if (c == this.recordScreenCommand) {
 			Display.getDisplay(this.midlet).setCurrent(this.midlet.myForm);
 		} else if (c == this.uploadScreenCommand) {
 			Display.getDisplay(this.midlet).setCurrent(
@@ -52,7 +53,7 @@ public class GPSScreen implements CommandListener {
 		}
 	}
 
-	private void updateDisplayCB() {
+	public void updateDisplayCB() {
 		// call my parent's getCoordinates command.
 		// Unpack it and update textBox.
 		// TODO how do I make sure the screen gets refreshed?
@@ -68,7 +69,7 @@ public class GPSScreen implements CommandListener {
 		Long timestamp = new Long(0);
 		StringBuffer buf = new StringBuffer();
 		
-		this.midlet.getCoordinates();
+		//this.midlet.getCoordinates();
 		
 		// Gather information.
 		if (this.midlet.lp != null) {

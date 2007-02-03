@@ -15,7 +15,7 @@ import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Displayable;
 import javax.microedition.lcdui.Form;
-import javax.microedition.lcdui.Item;
+//import javax.microedition.lcdui.Item;
 import javax.microedition.lcdui.StringItem;
 import javax.microedition.rms.InvalidRecordIDException;
 import javax.microedition.rms.RecordEnumeration;
@@ -232,11 +232,11 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.int_recordsRemaining = this.recordStore.getNumRecords();
 		}
 		this.strItem_recordsRemaining = new StringItem("Records Queued", String
-				.valueOf(this.int_recordsRemaining), Item.PLAIN);
+				.valueOf(this.int_recordsRemaining), StringItem.LAYOUT_2);
 		this.strItem_recordsSent = new StringItem("Records Sent", String
-				.valueOf(this.int_recordsSent), Item.PLAIN);
-		this.status = new StringItem("Status", "Idle", Item.PLAIN);
-		this.debug = new StringItem("Debug", "Idle", Item.PLAIN);
+				.valueOf(this.int_recordsSent), StringItem.LAYOUT_2);
+		this.status = new StringItem("Status", "Idle", StringItem.LAYOUT_2);
+		this.debug = new StringItem("Debug", "Idle", StringItem.LAYOUT_2);
 		// UI Form - Gauge
 		// this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 
@@ -639,7 +639,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 	/**
 	 * 
 	 */
-	private void enableUploadCommandCB() {
+	public void enableUploadCommandCB() {
 		try {
 			if (this.state == UploadScreen.STOPPED) {
 				this.state = UploadScreen.UPLOADING;

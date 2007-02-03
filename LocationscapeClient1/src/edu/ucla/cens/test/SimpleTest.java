@@ -4,8 +4,8 @@ package edu.ucla.cens.test;
 import java.io.IOException;
 import javax.microedition.lcdui.Alert;
 import javax.microedition.lcdui.AlertType;
-import javax.microedition.lcdui.Choice;
-import javax.microedition.lcdui.ChoiceGroup;
+//import javax.microedition.lcdui.Choice;
+//import javax.microedition.lcdui.ChoiceGroup;
 import javax.microedition.lcdui.Command;
 import javax.microedition.lcdui.CommandListener;
 import javax.microedition.lcdui.Display;
@@ -138,7 +138,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * A flag that tells this whether or not stop the player, or to start the
 	 * player.
 	 */
-	private boolean stopPlayer = true;
+	private boolean stopPlayer = false;
 
 	private TextField textField_totalLength_ms;
 
@@ -166,12 +166,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Latitude and longitude
 	 */
-	//private ChoiceGroup choiceGroup_enableLocation;
-
-	//private boolean bool_locationEnabled = true;
-
+	// private ChoiceGroup choiceGroup_enableLocation;
+	// private boolean bool_locationEnabled = true;
 	// private int locationStatus = LocationProvider.OUT_OF_SERVICE;
-
 	public double lat = 0;
 
 	public double lon = 0;
@@ -192,8 +189,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Belongs to this.myForm. A combo box for recording/stopping/deleting.
 	 */
-	private ChoiceGroup myChoiceGroupActions;
-
+	// private ChoiceGroup myChoiceGroupActions;
 	/**
 	 * Belongs to this.myForm. A text box that shows some stats on the number of
 	 * recordings made and kept.
@@ -205,7 +201,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 */
 	public TextField strItem_userName;
 
-	public TextField strItem_gpsState;
+	public StringItem strItem_gpsState;
 
 	/** ************************************** */
 	// UI Form: Upload
@@ -226,6 +222,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			Command.SCREEN, 1);
 
 	private Command exitCommand = new Command("Exit", Command.EXIT, 1);
+
+	private boolean started = false;
 
 	/**
 	 * Default constructor. It creates a Canvas and a Form object.
@@ -258,29 +256,29 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			//
 			// StringItem: # of Saved Samples
 			this.strItem_recordsQueued = new StringItem("Records Queued:",
-					String.valueOf(-1), Item.PLAIN);
+					String.valueOf(-1), StringItem.LAYOUT_2);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.strItem_recordsQueued);
 			//
 			// StringItem: user name
 			String _userName = this.getUserInfoRecord(this.userInfo_rs);
 			this.strItem_userName = new TextField("User name", _userName, 32,
-					TextField.ANY);
+					TextField.LAYOUT_2);
 			this.myForm.append(this.strItem_userName);
 			//
 			// StringItem: GPS state
-			this.strItem_gpsState = new TextField("GPS State", "Not Started",
-					32, TextField.ANY);
+			this.strItem_gpsState = new StringItem("GPS State", "Not Started",
+					StringItem.LAYOUT_2);
 			this.myForm.append(this.strItem_gpsState);
 			//
 			// ChoiceGroup: Actions
-			this.myChoiceGroupActions = new ChoiceGroup("Actions:",
-					Choice.POPUP);
-			this.myChoiceGroupActions.append("Stop Recording", null);
-			this.myChoiceGroupActions.append("Start Recording", null);
-			this.myChoiceGroupActions.append("Clear Records", null);
-			this.myChoiceGroupActions.append("Show Location", null);
-			this.myForm.append(this.myChoiceGroupActions);
+			// this.myChoiceGroupActions = new ChoiceGroup("Actions:",
+			// Choice.POPUP);
+			// this.myChoiceGroupActions.append("Stop Recording", null);
+			// this.myChoiceGroupActions.append("Start Recording", null);
+			// this.myChoiceGroupActions.append("Clear Records", null);
+			// this.myChoiceGroupActions.append("Show Location", null);
+			// this.myForm.append(this.myChoiceGroupActions);
 			this.myForm.addCommand(this.uploadScreenCommand);
 			this.myForm.addCommand(this.gpsScreenCommand);
 			this.myForm.addCommand(this.exitCommand);
@@ -296,14 +294,17 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			/** ******************************* */
 			// Location
-//			this.choiceGroup_enableLocation = new ChoiceGroup("GPS:",
-//					Choice.MULTIPLE);
-//			this.choiceGroup_enableLocation.append("Enable", null);
-//			this.myForm.append(this.choiceGroup_enableLocation);
-
+			// this.choiceGroup_enableLocation = new ChoiceGroup("GPS:",
+			// Choice.MULTIPLE);
+			// this.choiceGroup_enableLocation.append("Enable", null);
+			// this.myForm.append(this.choiceGroup_enableLocation);
 			// Add commands.
 			this.startUploadScreen();
+			this.myForm.append(this.myUpload.status);
+			this.myForm.append(this.myUpload.strItem_recordsSent);
+
 			this.startGPSScreen();
+
 
 		} catch (Exception e) {
 			this.alertError("Hi Exception " + e.getMessage());
@@ -387,64 +388,64 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.lcdui.ItemStateListener#itemStateChanged(javax.microedition.lcdui.Item)
 	 */
 	public void itemStateChanged(Item item) {
-		if (item.equals(this.myChoiceGroupActions)) {
-			this.choiceGroupChanged();
-		} else if (item.equals(this.strItem_userName)) {
+		// if (item.equals(this.myChoiceGroupActions)) {
+		// this.choiceGroupChanged();
+		// } else
+		if (item.equals(this.strItem_userName)) {
 			String _userName = this.getUserInfoTextField();
 			this.setUserInfoRecord(this.userInfo_rs, _userName);
 		} else if (item.equals(this.textField_totalLength_ms)) {
 			this.int_totalLength_ms = Integer
 					.parseInt(this.textField_totalLength_ms.getString());
-		} 
-//		else if (item.equals(this.choiceGroup_enableLocation)) {
-//			this.choiceGroup_enableLocation_changed();
-//		}
+		}
+		// else if (item.equals(this.choiceGroup_enableLocation)) {
+		// this.choiceGroup_enableLocation_changed();
+		// }
 	}
 
 	/**
 	 * Called from this.itemStatechanged, this is triggered when
 	 * this.myChoiceGroupActions is the item that changed. Updates the stats.
 	 */
-	private void choiceGroupChanged() {
-		int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
-		String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
-		if (selectedStr.equals("Start Recording")) {
-			this.stopPlayer = false;
-			playerRecord();
-		} else if (selectedStr.equals("Stop Recording")) {
-			this.stopPlayer = true;
-			this.playerUpdate(null, "PAUSE", null);
-		} else if (selectedStr.equals("Clear Records")) {
-			synchronized (this.recordStore) {
-				try {
-					RecordEnumeration recIter = this.recordStore
-							.enumerateRecords(null, null, false);
-					while (recIter.hasNextElement()) {
-						int recId = recIter.nextRecordId();
-						this.recordStore.deleteRecord(recId);
-					}
-				} catch (RecordStoreNotOpenException e) {
-					e.printStackTrace();
-				} catch (InvalidRecordIDException e) {
-					e.printStackTrace();
-				} catch (RecordStoreException e) {
-					e.printStackTrace();
-				}
-			}
-		} else if (selectedStr.equals("Show Location")) {
-			Coordinates c = getCoordinates();
-			if (c != null) {
-				// use coordinate information
-				this.alertError("lat:" + c.getLatitude() + " lon:"
-						+ c.getLongitude());
-			} else {
-				this.alertError("error getting location");
-			}
-		} else {
-			this.alertError("Bug: no match for" + selectedStr);
-		}
-	}
-
+	// private void choiceGroupChanged() {
+	// int selectedIndex = this.myChoiceGroupActions.getSelectedIndex();
+	// String selectedStr = this.myChoiceGroupActions.getString(selectedIndex);
+	// if (selectedStr.equals("Start Recording")) {
+	// this.stopPlayer = false;
+	// playerRecord();
+	// } else if (selectedStr.equals("Stop Recording")) {
+	// this.stopPlayer = true;
+	// this.playerUpdate(null, "PAUSE", null);
+	// } else if (selectedStr.equals("Clear Records")) {
+	// synchronized (this.recordStore) {
+	// try {
+	// RecordEnumeration recIter = this.recordStore
+	// .enumerateRecords(null, null, false);
+	// while (recIter.hasNextElement()) {
+	// int recId = recIter.nextRecordId();
+	// this.recordStore.deleteRecord(recId);
+	// }
+	// } catch (RecordStoreNotOpenException e) {
+	// e.printStackTrace();
+	// } catch (InvalidRecordIDException e) {
+	// e.printStackTrace();
+	// } catch (RecordStoreException e) {
+	// e.printStackTrace();
+	// }
+	// }
+	// } else if (selectedStr.equals("Show Location")) {
+	// Coordinates c = getCoordinates();
+	// if (c != null) {
+	// // use coordinate information
+	// this.alertError("lat:" + c.getLatitude() + " lon:"
+	// + c.getLongitude());
+	// } else {
+	// this.alertError("error getting location");
+	// }
+	// } else {
+	// this.alertError("Bug: no match for" + selectedStr);
+	// }
+	// }
 	private String getUserInfoTextField() {
 		return this.strItem_userName.getString();
 	}
@@ -474,10 +475,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 		}
 	}
 
-//	private void choiceGroup_enableLocation_changed() {
-//		this.bool_locationEnabled = this.choiceGroup_enableLocation
-//				.isSelected(0);
-//	}
+	// private void choiceGroup_enableLocation_changed() {
+	// this.bool_locationEnabled = this.choiceGroup_enableLocation
+	// .isSelected(0);
+	// }
 
 	/**
 	 * Callback for PlayerListener.
@@ -535,9 +536,9 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.int_totalLength_ms = 10000;
 		}
 
-//		if (this.bool_locationEnabled) {
-//			playerRecordSetupLocation();
-//		}
+		// if (this.bool_locationEnabled) {
+		// playerRecordSetupLocation();
+		// }
 		Coordinates c = getCoordinates();
 
 		if (c != null) {
@@ -545,25 +546,25 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			this.lat = c.getLatitude();
 			this.lon = c.getLongitude();
 			// c.getAltitude();
-		} 
+		}
 		this.gpsScreen.updateDisplayCB();
 		this.myThread = new Thread(new SimpleTestHelper(this,
 				this.int_totalLength_ms, "PAUSE"));
 		this.myThread.start();
 	}
 
-//	private void playerRecordSetupLocation() {
-//		try {
-//			if (this.lp == null) {
-//				Criteria cr = new Criteria();
-//				cr.setHorizontalAccuracy(500);
-//				this.lp = LocationProvider.getInstance(cr);
-//				this.lp.setLocationListener(this, -1, -1, -1);
-//			}
-//		} catch (LocationException e) {
-//			this.alertError("LocationException:" + e.getMessage());
-//		}
-//	}
+	// private void playerRecordSetupLocation() {
+	// try {
+	// if (this.lp == null) {
+	// Criteria cr = new Criteria();
+	// cr.setHorizontalAccuracy(500);
+	// this.lp = LocationProvider.getInstance(cr);
+	// this.lp.setLocationListener(this, -1, -1, -1);
+	// }
+	// } catch (LocationException e) {
+	// this.alertError("LocationException:" + e.getMessage());
+	// }
+	// }
 
 	/**
 	 * Helper function for playerUpdate, dispatched to if the event is "PAUSE".
@@ -666,9 +667,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public Coordinates getCoordinates() {
 		try {
 			if ((this.lp != null)
-					&& ((this.lp.getState() == LocationProvider.OUT_OF_SERVICE)
-					|| (this.lp.getState() == LocationProvider.TEMPORARILY_UNAVAILABLE)))
-			{
+					&& ((this.lp.getState() == LocationProvider.OUT_OF_SERVICE) || (this.lp
+							.getState() == LocationProvider.TEMPORARILY_UNAVAILABLE))) {
 				this.lp.reset();
 				this.lp = null;
 			}
@@ -788,6 +788,11 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	 * @see javax.microedition.midlet.MIDlet#startApp()
 	 */
 	protected void startApp() throws MIDletStateChangeException {
+		if (!this.started) {
+			this.started = true;
+			this.playerRecord();
+			this.myUpload.enableUploadCommandCB();
+		}
 		Display.getDisplay(this).setCurrent(this.myForm);
 	}
 
@@ -810,13 +815,13 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	public void providerStateChanged(LocationProvider lp, int lp_status) {
 		switch (lp_status) {
 		case LocationProvider.AVAILABLE:
-			this.strItem_gpsState.setString("Available");
+			this.strItem_gpsState.setText("Available");
 			break;
 		case LocationProvider.TEMPORARILY_UNAVAILABLE:
-			this.strItem_gpsState.setString("Temporarily Unavailable");
+			this.strItem_gpsState.setText("Temporarily Unavailable");
 			break;
 		case LocationProvider.OUT_OF_SERVICE:
-			this.strItem_gpsState.setString("Out of Service");
+			this.strItem_gpsState.setText("Out of Service");
 		}
 		this.gpsScreen.updateDisplayCB();
 	}

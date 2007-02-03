@@ -232,11 +232,11 @@ public class UploadScreen implements CommandListener, RecordListener {
 			this.int_recordsRemaining = this.recordStore.getNumRecords();
 		}
 		this.strItem_recordsRemaining = new StringItem("Records Queued", String
-				.valueOf(this.int_recordsRemaining), StringItem.LAYOUT_2);
+				.valueOf(this.int_recordsRemaining), StringItem.PLAIN);
 		this.strItem_recordsSent = new StringItem("Records Sent", String
-				.valueOf(this.int_recordsSent), StringItem.LAYOUT_2);
-		this.status = new StringItem("Status", "Idle", StringItem.LAYOUT_2);
-		this.debug = new StringItem("Debug", "Idle", StringItem.LAYOUT_2);
+				.valueOf(this.int_recordsSent), StringItem.PLAIN);
+		this.status = new StringItem("Status", "Idle", StringItem.PLAIN);
+		this.debug = new StringItem("Debug", "Idle", StringItem.PLAIN);
 		// UI Form - Gauge
 		// this.gauge = new Gauge("Percentage Sent", false, 100, 0);
 

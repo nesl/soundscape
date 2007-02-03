@@ -256,19 +256,19 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			//
 			// StringItem: # of Saved Samples
 			this.strItem_recordsQueued = new StringItem("Records Queued:",
-					String.valueOf(-1), StringItem.LAYOUT_2);
+					String.valueOf(-1), StringItem.PLAIN);
 			this.updateStringItem(this.recordStore, -1);
 			this.myForm.append(this.strItem_recordsQueued);
 			//
 			// StringItem: user name
 			String _userName = this.getUserInfoRecord(this.userInfo_rs);
 			this.strItem_userName = new TextField("User name", _userName, 32,
-					TextField.LAYOUT_2);
+					TextField.PLAIN);
 			this.myForm.append(this.strItem_userName);
 			//
 			// StringItem: GPS state
 			this.strItem_gpsState = new StringItem("GPS State", "Not Started",
-					StringItem.LAYOUT_2);
+					StringItem.PLAIN);
 			this.myForm.append(this.strItem_gpsState);
 			//
 			// ChoiceGroup: Actions
@@ -289,7 +289,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			this.int_totalLength_ms = 10000;
 			this.textField_totalLength_ms = new TextField("Repeat every (ms)",
-					"10000", 6, TextField.NUMERIC);
+					"10000", 6, TextField.PLAIN);
 			this.myForm.append(this.textField_totalLength_ms);
 
 			/** ******************************* */
@@ -300,8 +300,8 @@ public class SimpleTest extends MIDlet implements CommandListener,
 			// this.myForm.append(this.choiceGroup_enableLocation);
 			// Add commands.
 			this.startUploadScreen();
-			this.myForm.append(this.myUpload.status);
-			this.myForm.append(this.myUpload.strItem_recordsSent);
+			//this.myForm.append(this.myUpload.status);
+			//this.myForm.append(this.myUpload.strItem_recordsSent);
 
 			this.startGPSScreen();
 

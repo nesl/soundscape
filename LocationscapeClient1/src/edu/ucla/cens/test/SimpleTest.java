@@ -166,7 +166,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 	/**
 	 * Latitude and longitude
 	 */
-	private ChoiceGroup choiceGroup_enableLocation;
+	//private ChoiceGroup choiceGroup_enableLocation;
 
 	//private boolean bool_locationEnabled = true;
 
@@ -254,7 +254,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			// /////////////////////////////////////////////////
 			// UI Record Form - Record Info
-			this.myForm = new Form("Record Info");
+			this.myForm = new Form("Record Info Tag 5");
 			//
 			// StringItem: # of Saved Samples
 			this.strItem_recordsQueued = new StringItem("Records Queued:",
@@ -296,10 +296,10 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			/** ******************************* */
 			// Location
-			this.choiceGroup_enableLocation = new ChoiceGroup("GPS:",
-					Choice.MULTIPLE);
-			this.choiceGroup_enableLocation.append("Enable", null);
-			this.myForm.append(this.choiceGroup_enableLocation);
+//			this.choiceGroup_enableLocation = new ChoiceGroup("GPS:",
+//					Choice.MULTIPLE);
+//			this.choiceGroup_enableLocation.append("Enable", null);
+//			this.myForm.append(this.choiceGroup_enableLocation);
 
 			// Add commands.
 			this.startUploadScreen();

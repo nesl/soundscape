@@ -242,9 +242,13 @@ public class UploadScreen implements CommandListener, RecordListener {
 
 		// UI Form - Assemble Elements
 		//this.form.append(this.debug);
+		
 		this.form.append(this.status);
+		
 		// this.form.append(this.gauge);
+		
 		this.form.append(this.strItem_recordsRemaining);
+		
 		this.form.append(this.strItem_recordsSent);
 		this.form.addCommand(this.recordScreenCommand);
 		this.form.addCommand(this.enableUploadCommand);
@@ -452,7 +456,7 @@ public class UploadScreen implements CommandListener, RecordListener {
 			postBuf.append("email=adparker%40gmail.com");
 			postBuf.append("&pw=ecopda");
 			postBuf.append("&type=xml");
-			postBuf.append("&project_id=84");
+			postBuf.append("&project_id=105");
 			postBuf.append("&tableName=gps");
 			postBuf.append("&data_string=");
 

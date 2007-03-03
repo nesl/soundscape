@@ -252,7 +252,7 @@ public class SimpleTest extends MIDlet implements CommandListener,
 
 			// /////////////////////////////////////////////////
 			// UI Record Form - Record Info
-			this.myForm = new Form("Record Info Tag 5");
+			this.myForm = new Form("Record Info Tag 6");
 			//
 			// StringItem: # of Saved Samples
 			this.strItem_recordsQueued = new StringItem("Records Queued:",
